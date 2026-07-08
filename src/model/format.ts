@@ -8,16 +8,6 @@ export function cf(n: number): string {
   return '$' + nf(n)
 }
 
-/** 12.345 → "12.3%" */
-export function pf(n: number, digits = 1): string {
-  return n.toFixed(digits) + '%'
-}
-
-/** 1.6 → "$1.60" */
-export function money2(n: number): string {
-  return '$' + n.toFixed(2)
-}
-
 /** 1_250_000 → "$1.3M", 42_000 → "$42k" */
 export function short(n: number): string {
   if (n >= 1_000_000) return '$' + (n / 1_000_000).toFixed(1) + 'M'

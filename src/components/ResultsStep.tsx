@@ -32,10 +32,9 @@ interface ResultsStepProps {
 
 export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, period, onPeriod }: ResultsStepProps) {
   const accent = accentFor(payment)
-  const avgCheck = NICHES[niche].check
-  const nicheLower = NICHES[niche].title.toLowerCase()
+  const nicheObj = NICHES[niche]
 
-  const monthly = useMemo(() => monthlyFor(tariff, avgCheck), [tariff, avgCheck])
+  const monthly = useMemo(() => monthlyFor(tariff, nicheObj), [tariff, nicheObj])
   const total = useMemo(() => aggregate(monthly, 0, MONTHS), [monthly])
 
   const fee24 = feeFor(tariff, payment) * MONTHS
@@ -129,7 +128,8 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
               Your month-by-month projection
             </h2>
             <p style={{ margin: '6px 0 0', fontSize: 15, fontWeight: 300, color: 'var(--ink-500)' }}>
-              Click any row, column header, or cell to highlight it during your walkthrough.
+              Click any row, column header, or cell to highlight it. Gray spend cells mark months at the
+              $10,000 Ad Grant cap.
             </p>
           </div>
           <PillGroup items={TARIFF_PILLS} current={tariff} onPick={onTariff} accent={accent} />
@@ -165,8 +165,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
         onPeriod={onPeriod}
         payment={payment}
         onPayment={onPayment}
-        avgCheck={avgCheck}
-        nicheLower={nicheLower}
+        niche={nicheObj}
         accent={accent}
       />
     </div>

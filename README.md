@@ -22,9 +22,9 @@ npm run preview  # serve the production build
 ```
 src/
   model/
-    types.ts        # shared domain types (Tariff, Niche, Metrics, MonthRow, …)
-    data.ts         # niches (21), tariffs (3), conversion split, accent palettes
-    projection.ts   # the math: logistic ramp-up, monthly rows, aggregation, fees
+    types.ts        # shared domain types (Tariff, Niche, NicheCoef, Metrics, MonthRow, …)
+    data.ts         # niches (21) + coefficients, 3 packages, static base tables, accents
+    projection.ts   # base table × niche coefficient, spend cap, aggregation, fees
     format.ts       # number/currency/percent formatters
   components/
     NicheStep.tsx        # step 1 — hero, trust block, niche dropdown
@@ -39,10 +39,23 @@ src/
 
 ## Model notes
 
-- Ad spend ramps up along a logistic curve: ~16% of the plan's max spend in month 1
-  → 100% by month 24 (inflection ≈ month 7).
-- Max monthly spend = $10,000 grant cap × plan utilization (55% / 82% / 100%).
-- Donation revenue = conversions × plan donation share × niche average check.
+The numbers come from the client's reference spreadsheet, not a generative formula.
+
+- **Packages** are three monthly service-fee tiers — $250 / $500 / $1000 (annual billing
+  $200 / $350 / $650). The fee is what the nonprofit pays dgtl-house; ad spend is always
+  the Google grant (capped at $10,000/mo). A higher fee buys a faster ramp-up and better
+  conversion, encoded in each package's static 24-month base table (`BASE_TABLES` in
+  `data.ts`, ported verbatim from the sheet's "Пакеты" tabs for the reference niche).
+- **Reference niche** = Education & Scholarships (all coefficients 1.00, avg check $150).
+  Selecting another niche multiplies every column of the base table by that niche's
+  per-metric coefficient and uses its average donation check for donation $. Spend is
+  re-capped at $10,000/mo after scaling.
+- **Screen 1**: Projected donations = donation count (2 yrs) × avg check; ROI = that ÷
+  service fee (fee × 24); Net gain = donations $ − service fee.
+- **Screen 2** (comparison): per period (Y1 / Y2 / Total) — donations $ = count × check;
+  Net donation gain = donations $ − fee × months; Annual savings = (monthly − annual fee)
+  × months.
+- **Spend cells at the $10,000 cap are shaded light gray** in the breakdown table.
 - Annual billing switches the accent to the dark-olive scheme and adds the savings row.
 
 ## Branding

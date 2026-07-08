@@ -3,40 +3,48 @@ export type TariffKey = 'starter' | 'growth' | 'impact'
 export type Payment = 'monthly' | 'annual'
 export type Period = 'y1' | 'y2' | 'total'
 
+/**
+ * Per-metric niche coefficients, relative to the reference niche
+ * (Education & Scholarships = 1.00 across the board). Selecting a niche
+ * multiplies each column of the base package table by these factors.
+ */
+export interface NicheCoef {
+  spend: number
+  impressions: number
+  clicks: number
+  conv: number
+  donations: number
+  volunteers: number
+  registrations: number
+  contactLeads: number
+  newsletter: number
+  phoneCalls: number
+  other: number
+}
+
 export interface Niche {
   title: string
   desc: string
-  /** Average donation check, $ */
+  /** Average donation, $ (Средний Донат) */
   check: number
+  coef: NicheCoef
 }
 
 export interface Tariff {
   name: string
   tagline: string
-  /** Share of the grant cap actually spent */
-  util: number
-  cpc: number
-  ctr: number
-  /** Conversion rate */
-  cr: number
-  /** Share of conversions that are donations */
-  donShare: number
-  /** Service fee, $/mo on monthly billing */
+  /** Service fee, $/mo on monthly billing (the package price) */
   feeM: number
   /** Service fee, $/mo on annual billing */
   feeA: number
 }
 
-/** Aggregated metrics (month row without the month number) */
+/** Aggregated metrics (a month row without the month number) */
 export interface Metrics {
   spend: number
-  clicks: number
   impressions: number
-  ctr: number
-  cpc: number
+  clicks: number
   conv: number
-  cr: number
-  cpa: number
   donQty: number
   donUsd: number
   volunteers: number

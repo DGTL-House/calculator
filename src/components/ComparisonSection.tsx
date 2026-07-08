@@ -1,7 +1,7 @@
 import { cf, nf } from '../model/format'
 import { TARIFF_ORDER, TARIFFS } from '../model/data'
 import { aggregate, feeFor, monthlyFor, periodRange } from '../model/projection'
-import type { Accent, Payment, Period, TariffKey } from '../model/types'
+import type { Accent, Niche, Payment, Period, TariffKey } from '../model/types'
 import { PillGroup } from './PillGroup'
 
 type RowType = 'plain' | 'divider' | 'sub' | 'feegap' | 'net' | 'save'
@@ -13,9 +13,9 @@ interface CompRow {
   caption?: string
 }
 
-function buildRows(key: TariffKey, period: Period, payment: Payment, avgCheck: number): CompRow[] {
+function buildRows(key: TariffKey, period: Period, payment: Payment, niche: Niche): CompRow[] {
   const [start, end, count] = periodRange(period)
-  const a = aggregate(monthlyFor(key, avgCheck), start, end)
+  const a = aggregate(monthlyFor(key, niche), start, end)
   const p = TARIFFS[key]
   const fee = feeFor(key, payment)
   const serviceFee = fee * count
@@ -24,7 +24,7 @@ function buildRows(key: TariffKey, period: Period, payment: Payment, avgCheck: n
     { type: 'plain', label: 'Impressions', value: nf(a.impressions) },
     { type: 'plain', label: 'Traffic', value: nf(a.clicks) },
     { type: 'divider', label: 'Conversions', value: nf(a.conv) },
-    { type: 'sub', label: 'Donations, $', value: cf(a.donUsd), caption: `av check — $${avgCheck}` },
+    { type: 'sub', label: 'Donations, $', value: cf(a.donUsd), caption: `av check — $${niche.check}` },
     { type: 'sub', label: 'Donations, qty', value: nf(a.donQty) },
     { type: 'sub', label: 'Volunteers', value: nf(a.volunteers) },
     { type: 'sub', label: 'Registrations', value: nf(a.registrations) },
@@ -49,12 +49,12 @@ interface ComparisonSectionProps {
   onPeriod: (p: Period) => void
   payment: Payment
   onPayment: (p: Payment) => void
-  avgCheck: number
-  nicheLower: string
+  niche: Niche
   accent: Accent
 }
 
-export function ComparisonSection({ period, onPeriod, payment, onPayment, avgCheck, nicheLower, accent }: ComparisonSectionProps) {
+export function ComparisonSection({ period, onPeriod, payment, onPayment, niche, accent }: ComparisonSectionProps) {
+  const nicheLower = niche.title.toLowerCase()
   return (
     <section style={{ marginTop: 64 }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -132,7 +132,7 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, avgChe
               )}
               <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em' }}>{p.name}</div>
               <div style={{ fontSize: 13, fontWeight: 300, color: 'var(--ink-400)', marginBottom: 16 }}>{p.tagline}</div>
-              {buildRows(key, period, payment, avgCheck).map((r, i) => (
+              {buildRows(key, period, payment, niche).map((r, i) => (
                 <div key={i} className={`cmp-${r.type}`}>
                   <span className="cmp-label">
                     {r.label}

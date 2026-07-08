@@ -1,57 +1,39 @@
-import { GRANT_CAP, MONTHS, SPLIT, TARIFFS } from './data'
-import type { Metrics, MonthRow, Payment, Period, TariffKey } from './types'
+import { BASE_TABLES, GRANT_CAP, TARIFFS } from './data'
+import type { Metrics, MonthRow, Niche, Payment, Period, TariffKey } from './types'
 
 /**
- * Logistic ramp-up curve: month 1 starts at 16% of the max ad spend and
- * approaches 100% by month 24 (inflection around month 7).
+ * Monthly rows for a package + niche: the package's static base table
+ * (reference niche) with each column multiplied by the niche coefficient.
+ * Ad spend is re-capped at the $10k/mo Google grant ceiling, and donation $
+ * = donation count × the niche's average check.
  */
-const RAMP: number[] = (() => {
-  const L = (m: number) => 1 / (1 + Math.exp(-0.34 * (m - 7)))
-  const min = L(1)
-  const max = L(MONTHS)
-  const out: number[] = []
-  for (let m = 1; m <= MONTHS; m++) out.push(0.16 + (0.84 * (L(m) - min)) / (max - min))
-  return out
-})()
-
-export function monthlyFor(key: TariffKey, avgCheck: number): MonthRow[] {
-  const p = TARIFFS[key]
-  const maxSpend = GRANT_CAP * p.util
-  const rows: MonthRow[] = []
-  for (let i = 0; i < MONTHS; i++) {
-    const spend = maxSpend * RAMP[i]
-    const clicks = spend / p.cpc
-    const impressions = clicks / p.ctr
-    const conv = clicks * p.cr
-    const donQty = conv * p.donShare
-    const nonDon = conv * (1 - p.donShare)
-    rows.push({
+export function monthlyFor(key: TariffKey, niche: Niche): MonthRow[] {
+  const c = niche.coef
+  return BASE_TABLES[key].map((row, i) => {
+    const [spend, impressions, clicks, conv, donations, volunteers, registrations, contactLeads, newsletter, phoneCalls, other] = row
+    const donQty = donations * c.donations
+    return {
       month: i + 1,
-      spend,
-      clicks,
-      impressions,
-      ctr: p.ctr,
-      cpc: p.cpc,
-      conv,
-      cr: clicks ? conv / clicks : 0,
-      cpa: conv ? spend / conv : 0,
+      spend: Math.min(spend * c.spend, GRANT_CAP),
+      impressions: impressions * c.impressions,
+      clicks: clicks * c.clicks,
+      conv: conv * c.conv,
       donQty,
-      donUsd: donQty * avgCheck,
-      volunteers: nonDon * SPLIT.volunteers,
-      registrations: nonDon * SPLIT.registrations,
-      contactLeads: nonDon * SPLIT.contactLeads,
-      newsletter: nonDon * SPLIT.newsletter,
-      phoneCalls: nonDon * SPLIT.phoneCalls,
-      other: nonDon * SPLIT.other,
-    })
-  }
-  return rows
+      donUsd: donQty * niche.check,
+      volunteers: volunteers * c.volunteers,
+      registrations: registrations * c.registrations,
+      contactLeads: contactLeads * c.contactLeads,
+      newsletter: newsletter * c.newsletter,
+      phoneCalls: phoneCalls * c.phoneCalls,
+      other: other * c.other,
+    }
+  })
 }
 
 const SUM_KEYS = [
   'spend',
-  'clicks',
   'impressions',
+  'clicks',
   'conv',
   'donQty',
   'donUsd',
@@ -64,16 +46,11 @@ const SUM_KEYS = [
 ] as const
 
 export function aggregate(monthly: MonthRow[], start: number, end: number): Metrics {
-  const rows = monthly.slice(start, end)
   const s: Metrics = {
     spend: 0,
-    clicks: 0,
     impressions: 0,
-    ctr: 0,
-    cpc: 0,
+    clicks: 0,
     conv: 0,
-    cr: 0,
-    cpa: 0,
     donQty: 0,
     donUsd: 0,
     volunteers: 0,
@@ -83,11 +60,7 @@ export function aggregate(monthly: MonthRow[], start: number, end: number): Metr
     phoneCalls: 0,
     other: 0,
   }
-  for (const r of rows) for (const k of SUM_KEYS) s[k] += r[k]
-  s.ctr = s.impressions ? s.clicks / s.impressions : 0
-  s.cr = s.clicks ? s.conv / s.clicks : 0
-  s.cpc = s.clicks ? s.spend / s.clicks : 0
-  s.cpa = s.conv ? s.spend / s.conv : 0
+  for (const r of monthly.slice(start, end)) for (const k of SUM_KEYS) s[k] += r[k]
   return s
 }
 
