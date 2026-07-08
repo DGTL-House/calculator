@@ -1,6 +1,6 @@
 import { useMemo } from 'react'
 import { accentFor, MONTHS, NICHES } from '../model/data'
-import { cf, nf } from '../model/format'
+import { cc, nf } from '../model/format'
 import { aggregate, feeFor, monthlyFor } from '../model/projection'
 import type { Payment, Period, TariffKey } from '../model/types'
 import { BreakdownTable } from './BreakdownTable'
@@ -48,7 +48,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
   const monthlySpend = useMemo(() => monthly.map((m) => m.spend), [monthly])
 
   const metricCards = [
-    { label: 'Projected donations', value: cf(total.donUsd), sub: 'in donations over 24 months' },
+    { label: 'Projected donations', value: cc(total.donUsd), sub: 'in donations over 24 months' },
     { label: 'Meaningful conversions', value: nf(total.conv), sub: 'volunteers, registrations, calls & more' },
     { label: 'Return on investment', value: `×${roi.toFixed(1)}`, sub: 'return on every $1 invested', color: accent.big },
   ]
@@ -101,12 +101,12 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
             >
               Your net gain
             </span>
-            <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>{cf(net)}</span>
+            <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>{cc(net)}</span>
           </div>
           <div style={{ width: 1, alignSelf: 'stretch', background: accent.rule }} />
           <div style={{ fontSize: 26, fontWeight: 500, lineHeight: 1.28, letterSpacing: '-0.01em' }}>
             After our service fee, your nonprofit&rsquo;s{' '}
-            <strong style={{ fontWeight: 700 }}>net gain in donations is {cf(net)}</strong> over 24 months.
+            <strong style={{ fontWeight: 700 }}>net gain in donations is {cc(net)}</strong> over 24 months.
           </div>
         </div>
       </section>

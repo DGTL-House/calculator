@@ -1,4 +1,4 @@
-import { cf, nf } from '../model/format'
+import { cc, cf, nf } from '../model/format'
 import { TARIFF_ORDER, TARIFFS } from '../model/data'
 import { aggregate, feeFor, monthlyFor, periodRange } from '../model/projection'
 import type { Accent, Niche, Payment, Period, TariffKey } from '../model/types'
@@ -24,7 +24,7 @@ function buildRows(key: TariffKey, period: Period, payment: Payment, niche: Nich
     { type: 'plain', label: 'Impressions', value: nf(a.impressions) },
     { type: 'plain', label: 'Traffic', value: nf(a.clicks) },
     { type: 'divider', label: 'Conversions', value: nf(a.conv) },
-    { type: 'sub', label: 'Donations, $', value: cf(a.donUsd), caption: `av check — $${niche.check}` },
+    { type: 'sub', label: 'Donations, $', value: cc(a.donUsd), caption: `av check — $${niche.check}` },
     { type: 'sub', label: 'Donations, qty', value: nf(a.donQty) },
     { type: 'sub', label: 'Volunteers', value: nf(a.volunteers) },
     { type: 'sub', label: 'Registrations', value: nf(a.registrations) },
@@ -33,7 +33,7 @@ function buildRows(key: TariffKey, period: Period, payment: Payment, niche: Nich
     { type: 'sub', label: 'Phone Calls', value: nf(a.phoneCalls) },
     { type: 'sub', label: 'Other', value: nf(a.other) },
     { type: 'feegap', label: 'Service fee', value: cf(serviceFee) },
-    { type: 'net', label: 'Net donation gain', value: cf(a.donUsd - serviceFee) },
+    { type: 'net', label: 'Net donation gain', value: cc(a.donUsd - serviceFee) },
     { type: 'plain', label: 'Monthly payment', value: `${cf(fee)}/mo` },
   ]
   if (payment === 'annual') {

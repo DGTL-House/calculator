@@ -1,10 +1,10 @@
 import { useState, type CSSProperties } from 'react'
 import { GRANT_CAP } from '../model/data'
-import { cf, nf } from '../model/format'
+import { cf, money2, nf, pf } from '../model/format'
 import { aggregate } from '../model/projection'
 import type { Metrics, MonthRow } from '../model/types'
 
-type ColFmt = 'cf' | 'nf'
+type ColFmt = 'cf' | 'nf' | 'money2' | 'ctr' | 'cr'
 
 interface Col {
   k: keyof Metrics
@@ -15,12 +15,19 @@ interface Col {
 
 type MonthCol = { k: 'month'; h: string; first: true; alignLeft: true }
 
+// Column order per the formula doc: Month, Spend, Impressions, CTR%, CPC,
+// Clicks, Total conv, CR%, CPA, Donations, Volunteers, Registrations,
+// Contact Leads, Newsletter, Phone Calls, Other.
 const COLS: (Col | MonthCol)[] = [
   { k: 'month', h: 'Month', first: true, alignLeft: true },
   { k: 'spend', h: 'Spend ($)', f: 'cf' },
   { k: 'impressions', h: 'Impressions', f: 'nf' },
+  { k: 'ctr', h: 'CTR %', f: 'ctr' },
+  { k: 'cpc', h: 'CPC', f: 'money2' },
   { k: 'clicks', h: 'Clicks', f: 'nf' },
   { k: 'conv', h: 'Total conv.', f: 'nf', divider: true },
+  { k: 'cr', h: 'CR %', f: 'cr' },
+  { k: 'cpa', h: 'CPA', f: 'money2' },
   { k: 'donQty', h: 'Donations', f: 'nf' },
   { k: 'volunteers', h: 'Volunteers', f: 'nf' },
   { k: 'registrations', h: 'Registrations', f: 'nf' },
@@ -30,12 +37,23 @@ const COLS: (Col | MonthCol)[] = [
   { k: 'other', h: 'Other', f: 'nf' },
 ]
 
-const MAIN_SPAN = 4 // Month, Spend, Impressions, Clicks
+const MAIN_SPAN = 6 // Month, Spend, Impressions, CTR%, CPC, Clicks
 const CONV_SPAN = COLS.length - MAIN_SPAN
 
 function fmtCell(col: Col, data: Metrics): string {
   const v = data[col.k]
-  return col.f === 'cf' ? cf(v) : nf(v)
+  switch (col.f) {
+    case 'cf':
+      return cf(v)
+    case 'money2':
+      return money2(v)
+    case 'ctr':
+      return pf(v * 100, 2)
+    case 'cr':
+      return pf(v * 100, 1)
+    default:
+      return nf(v)
+  }
 }
 
 interface TableRow {
@@ -83,7 +101,7 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
   const rows = buildRows(monthly)
 
   return (
-    <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 1120 }}>
+    <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 1480 }}>
       <thead>
         <tr>
           <th colSpan={MAIN_SPAN} style={{ ...groupHeadBase, color: '#3F5028', background: '#EAF6CC' }}>

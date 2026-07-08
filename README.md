@@ -50,11 +50,20 @@ The numbers come from the client's reference spreadsheet, not a generative formu
   Selecting another niche multiplies every column of the base table by that niche's
   per-metric coefficient and uses its average donation check for donation $. Spend is
   re-capped at $10,000/mo after scaling.
+- **Donation precision**: the sheet's donation income comes from a *fractional* 2-year
+  donation count ($30,687.21 = 204.5814 × $150, etc.), so `DONATIONS_2Y` holds those
+  exact totals and the monthly integers are scaled to sum to them. Calculations carry the
+  fractions (income / net gain / ROI match the sheet to the cent); the table rounds
+  donations to whole numbers for display.
 - **Screen 1**: Projected donations = donation count (2 yrs) × avg check; ROI = that ÷
   service fee (fee × 24); Net gain = donations $ − service fee.
 - **Screen 2** (comparison): per period (Y1 / Y2 / Total) — donations $ = count × check;
   Net donation gain = donations $ − fee × months; Annual savings = (monthly − annual fee)
   × months.
+- **Breakdown table columns** follow the formula doc: Month, Spend, Impressions, CTR %,
+  CPC, Clicks, Total conv., CR %, CPA, Donations, Volunteers, Registrations, Contact Leads,
+  Newsletter, Phone Calls, Other. CTR/CPC/CR/CPA are derived (CTR = clicks/impressions,
+  CPC = spend/clicks, CR = conv/clicks, CPA = spend/conv).
 - **Spend cells at the $10,000 cap are shaded light gray** in the breakdown table.
 - Annual billing switches the accent to the dark-olive scheme and adds the savings row.
 

@@ -83,6 +83,21 @@ export const TARIFF_ORDER: TariffKey[] = ['starter', 'growth', 'impact']
  * [spend, impressions, clicks, conv, donations, volunteers, registrations,
  *  contactLeads, newsletter, phoneCalls, other]
  */
+/**
+ * Exact 2-year donation counts for the reference niche (Education), derived
+ * from the sheet's donation-income figures ÷ $150 check:
+ *   $250 → $30,687.21/150 = 204.5814,  $500 → $52,350/150 = 349,
+ *   $1000 → $88,582.35/150 = 590.549.
+ * The monthly donation integers in BASE_TABLES are the sheet's rounded display
+ * values; calculations scale them to sum to these fractional totals so donation
+ * income matches the sheet to the cent, while the table still shows integers.
+ */
+export const DONATIONS_2Y: Record<TariffKey, number> = {
+  starter: 204.5814,
+  growth: 349,
+  impact: 590.549,
+}
+
 export type BaseRow = [number, number, number, number, number, number, number, number, number, number, number]
 
 export const BASE_TABLES: Record<TariffKey, BaseRow[]> = {
