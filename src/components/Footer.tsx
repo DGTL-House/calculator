@@ -22,7 +22,7 @@ export function Footer() {
           style={{ height: 28, width: 'auto' }}
         />
         <span style={{ fontSize: 15, color: 'var(--ink-400)' }}>
-          contact@dgtl-house.com &middot; +1 (224) 246-9412
+          nonprofit@dgtl-house.com &middot; +1 (224) 584 8401
         </span>
       </div>
       <div

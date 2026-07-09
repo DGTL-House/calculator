@@ -24,6 +24,10 @@ export default function App() {
     }
   }, [])
 
+  useEffect(() => {
+    if (step === 'results') window.scrollTo({ top: 0, behavior: 'smooth' })
+  }, [step])
+
   const startLoading = () => {
     if (niche == null) return
     clearInterval(timers.current.interval)

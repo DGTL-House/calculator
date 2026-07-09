@@ -104,7 +104,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
             <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>{cc(net)}</span>
           </div>
           <div style={{ width: 1, alignSelf: 'stretch', background: accent.rule }} />
-          <div style={{ fontSize: 26, fontWeight: 500, lineHeight: 1.28, letterSpacing: '-0.01em' }}>
+          <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 26, fontWeight: 500, lineHeight: 1.28, letterSpacing: '-0.01em' }}>
             After our service fee, your nonprofit&rsquo;s{' '}
             <strong style={{ fontWeight: 700 }}>net gain in donations is {cc(net)}</strong> over 24 months.
           </div>
@@ -135,7 +135,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
           <PillGroup items={TARIFF_PILLS} current={tariff} onPick={onTariff} accent={accent} />
         </div>
         <div style={{ background: '#FFFFFF', borderRadius: 20, boxShadow: 'inset 0 0 0 1px var(--cream-400)', overflow: 'hidden' }}>
-          <div style={{ overflowX: 'auto' }}>
+          <div style={{ overflow: 'auto', maxHeight: '70vh' }}>
             <BreakdownTable monthly={monthly} />
           </div>
         </div>

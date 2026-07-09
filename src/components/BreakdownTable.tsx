@@ -1,4 +1,4 @@
-import { useState, type CSSProperties } from 'react'
+import { useEffect, useRef, useState, type CSSProperties } from 'react'
 import { GRANT_CAP } from '../model/data'
 import { cf, money2, nf, pf } from '../model/format'
 import { aggregate } from '../model/projection'
@@ -75,7 +75,11 @@ function buildRows(monthly: MonthRow[]): TableRow[] {
   return rows
 }
 
+// Height of the top group-header row, used to offset the sticky column row.
+const GROUP_HEAD_H = 43
+
 const groupHeadBase: CSSProperties = {
+  height: GROUP_HEAD_H,
   padding: '13px 16px',
   textAlign: 'left',
   fontFamily: 'var(--font-mono)',
@@ -83,12 +87,29 @@ const groupHeadBase: CSSProperties = {
   letterSpacing: '0.04em',
   textTransform: 'uppercase',
   borderBottom: '1px solid #DBDBD8',
+  position: 'sticky',
+  top: 0,
+  zIndex: 3,
 }
 
 export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
   const [hlRows, setHlRows] = useState<Set<number>>(new Set())
   const [hlCols, setHlCols] = useState<Set<number>>(new Set())
   const [hlCells, setHlCells] = useState<Set<string>>(new Set())
+  const tableRef = useRef<HTMLTableElement>(null)
+
+  // Clear all highlights when clicking anywhere outside the table.
+  useEffect(() => {
+    const onDown = (e: MouseEvent) => {
+      if (tableRef.current && !tableRef.current.contains(e.target as Node)) {
+        setHlRows(new Set())
+        setHlCols(new Set())
+        setHlCells(new Set())
+      }
+    }
+    document.addEventListener('mousedown', onDown)
+    return () => document.removeEventListener('mousedown', onDown)
+  }, [])
 
   const toggle = <T,>(set: Set<T>, setSet: (s: Set<T>) => void, key: T) => {
     const next = new Set(set)
@@ -101,7 +122,7 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
   const rows = buildRows(monthly)
 
   return (
-    <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 1480 }}>
+    <table ref={tableRef} style={{ borderCollapse: 'collapse', width: '100%', minWidth: 1480 }}>
       <thead>
         <tr>
           <th colSpan={MAIN_SPAN} style={{ ...groupHeadBase, color: '#3F5028', background: '#EAF6CC' }}>
@@ -133,7 +154,10 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
                   cursor: 'pointer',
                   background: hlCols.has(c) ? '#D8F1A5' : 'var(--cream-100)',
                   textAlign: alignLeft ? 'left' : 'right',
-                  ...(first ? { position: 'sticky', left: 0, zIndex: 2 } : null),
+                  position: 'sticky',
+                  top: GROUP_HEAD_H,
+                  zIndex: first ? 4 : 3,
+                  ...(first ? { left: 0 } : null),
                   ...('divider' in col && col.divider ? { borderLeft: '1px solid #DBDBD8' } : null),
                 }}
               >
