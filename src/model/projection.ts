@@ -4,8 +4,12 @@ import type { Metrics, MonthRow, Niche, Payment, Period, TariffKey } from './typ
 /**
  * Monthly rows for a package + niche: the package's static base table
  * (reference niche) with each column multiplied by the niche coefficient.
- * Ad spend is re-capped at the $10k/mo Google grant ceiling, and donation $
- * = donation count × the niche's average check.
+ *
+ * Spend is special: the $10,000/mo cap cells are FIXED (gray in the sheet) —
+ * the niche coefficient does NOT apply to them; they stay at $10,000. The
+ * ramp-up cells (below the cap) DO get the coefficient, clamped at the cap.
+ *
+ * Donation $ = donation count × the niche's average check.
  */
 export function monthlyFor(key: TariffKey, niche: Niche): MonthRow[] {
   const c = niche.coef
@@ -15,22 +19,14 @@ export function monthlyFor(key: TariffKey, niche: Niche): MonthRow[] {
   const donScale = DONATIONS_2Y[key] / baseDonTotal
   return BASE_TABLES[key].map((row, i) => {
     const [spend0, impressions0, clicks0, conv0, donations, volunteers, registrations, contactLeads, newsletter, phoneCalls, other] = row
-    const spend = Math.min(spend0 * c.spend, GRANT_CAP)
-    const impressions = impressions0 * c.impressions
-    const clicks = clicks0 * c.clicks
-    const conv = conv0 * c.conv
     const donQty = donations * donScale * c.donations
     return {
       month: i + 1,
-      spend,
-      impressions,
-      // Derived metrics per the formula doc: CTR%, CPC, CR%, CPA.
-      ctr: impressions ? clicks / impressions : 0,
-      cpc: clicks ? spend / clicks : 0,
-      clicks,
-      conv,
-      cr: clicks ? conv / clicks : 0,
-      cpa: conv ? spend / conv : 0,
+      // Capped ($10k) cells stay fixed; ramp-up cells scale by the coefficient.
+      spend: spend0 >= GRANT_CAP ? GRANT_CAP : Math.min(spend0 * c.spend, GRANT_CAP),
+      impressions: impressions0 * c.impressions,
+      clicks: clicks0 * c.clicks,
+      conv: conv0 * c.conv,
       donQty,
       donUsd: donQty * niche.check,
       volunteers: volunteers * c.volunteers,
@@ -62,12 +58,8 @@ export function aggregate(monthly: MonthRow[], start: number, end: number): Metr
   const s: Metrics = {
     spend: 0,
     impressions: 0,
-    ctr: 0,
-    cpc: 0,
     clicks: 0,
     conv: 0,
-    cr: 0,
-    cpa: 0,
     donQty: 0,
     donUsd: 0,
     volunteers: 0,
@@ -78,11 +70,6 @@ export function aggregate(monthly: MonthRow[], start: number, end: number): Metr
     other: 0,
   }
   for (const r of monthly.slice(start, end)) for (const k of SUM_KEYS) s[k] += r[k]
-  // Derived ratios recomputed from the period totals (not summed).
-  s.ctr = s.impressions ? s.clicks / s.impressions : 0
-  s.cpc = s.clicks ? s.spend / s.clicks : 0
-  s.cr = s.clicks ? s.conv / s.clicks : 0
-  s.cpa = s.conv ? s.spend / s.conv : 0
   return s
 }
 

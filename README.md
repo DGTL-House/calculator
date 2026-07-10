@@ -47,9 +47,12 @@ The numbers come from the client's reference spreadsheet, not a generative formu
   conversion, encoded in each package's static 24-month base table (`BASE_TABLES` in
   `data.ts`, ported verbatim from the sheet's "Пакеты" tabs for the reference niche).
 - **Reference niche** = Education & Scholarships (all coefficients 1.00, avg check $150).
-  Selecting another niche multiplies every column of the base table by that niche's
-  per-metric coefficient and uses its average donation check for donation $. Spend is
-  re-capped at $10,000/mo after scaling.
+  Selecting another niche multiplies each column of the base table by that niche's
+  coefficient and uses its average donation check for donation $.
+- **Spend is special.** The $10,000/mo cap cells (gray/static in the sheet) are FIXED —
+  the niche coefficient does NOT apply, they stay at $10,000 for every niche. The ramp-up
+  cells (below the cap) DO get the spend coefficient, clamped at $10,000 — so a high-spend
+  niche reaches the cap sooner, a low-spend niche ramps slower but still caps at $10,000.
 - **Donation precision**: the sheet's donation income comes from a *fractional* 2-year
   donation count ($30,687.21 = 204.5814 × $150, etc.), so `DONATIONS_2Y` holds those
   exact totals and the monthly integers are scaled to sum to them. Calculations carry the
@@ -60,11 +63,17 @@ The numbers come from the client's reference spreadsheet, not a generative formu
 - **Screen 2** (comparison): per period (Y1 / Y2 / Total) — donations $ = count × check;
   Net donation gain = donations $ − fee × months; Annual savings = (monthly − annual fee)
   × months.
-- **Breakdown table columns** follow the formula doc: Month, Spend, Impressions, CTR %,
-  CPC, Clicks, Total conv., CR %, CPA, Donations, Volunteers, Registrations, Contact Leads,
-  Newsletter, Phone Calls, Other. CTR/CPC/CR/CPA are derived (CTR = clicks/impressions,
-  CPC = spend/clicks, CR = conv/clicks, CPA = spend/conv).
-- **Spend cells at the $10,000 cap are shaded light gray** in the breakdown table.
+- **Breakdown table columns**: Month, Spend, Impressions, Clicks, Total conv., Donations,
+  Volunteers, Registrations, Contact Leads, Newsletter, Phone Calls, Other. Spend cells at
+  the $10,000 cap are shaded light gray.
+- **Comparison cards** (`ComparisonSection`): Impressions / Traffic / Conversions are one
+  size; Conversions toggles the per-type breakdown (Donations, Volunteers, …); Net donation
+  gain sits on a highlighted strip; metric labels carry hover tooltips (`TIPS`).
+- **Net-gain badge**: on Screen 1, Growth / Impact show a rounded `+XX% vs. Starter plan`
+  badge (uplift of the selected plan's net gain over Starter's, same niche + billing),
+  recoloured with the monthly / annual accent.
+- **Services & what's included** (`ServicesSection`): a collapsible feature matrix across
+  the three plans (from the pricing page), with plan badges and prices.
 - Annual billing switches the accent to the dark-olive scheme and adds the savings row.
 
 ## Branding

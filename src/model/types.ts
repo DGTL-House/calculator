@@ -43,16 +43,8 @@ export interface Tariff {
 export interface Metrics {
   spend: number
   impressions: number
-  /** Click-through rate, fraction (clicks / impressions) */
-  ctr: number
-  /** Cost per click, $ (spend / clicks) */
-  cpc: number
   clicks: number
   conv: number
-  /** Conversion rate, fraction (conv / clicks) */
-  cr: number
-  /** Cost per acquisition, $ (spend / conv) */
-  cpa: number
   donQty: number
   donUsd: number
   volunteers: number

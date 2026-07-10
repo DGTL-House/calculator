@@ -9,7 +9,7 @@ import type { Payment, Period, Step, TariffKey } from './model/types'
 export default function App() {
   const [step, setStep] = useState<Step>('niche')
   const [niche, setNiche] = useState<number | null>(null)
-  const [tariff, setTariff] = useState<TariffKey>('growth')
+  const [tariff, setTariff] = useState<TariffKey>('starter')
   const [payment, setPayment] = useState<Payment>('monthly')
   const [period, setPeriod] = useState<Period>('total')
   const [loadIdx, setLoadIdx] = useState(0)

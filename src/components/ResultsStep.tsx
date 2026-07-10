@@ -8,6 +8,7 @@ import { ComparisonSection } from './ComparisonSection'
 import { Eyebrow } from './Eyebrow'
 import { LineChart } from './LineChart'
 import { PillGroup } from './PillGroup'
+import { ServicesSection } from './ServicesSection'
 
 const TARIFF_PILLS = [
   { label: 'Starter', value: 'starter' },
@@ -40,6 +41,18 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
   const fee24 = feeFor(tariff, payment) * MONTHS
   const roi = fee24 ? total.donUsd / fee24 : 0
   const net = total.donUsd - fee24
+
+  // Net-gain uplift of the selected plan vs. the Starter plan (same niche +
+  // billing). Shown as a badge on Growth / Impact only.
+  const starterNet = useMemo(() => {
+    const t = aggregate(monthlyFor('starter', nicheObj), 0, MONTHS)
+    return t.donUsd - feeFor('starter', payment) * MONTHS
+  }, [nicheObj, payment])
+  const upliftPct = tariff !== 'starter' && starterNet > 0 ? (net / starterNet - 1) * 100 : null
+  const badge =
+    payment === 'annual'
+      ? { bg: '#2D3A1C', ink: '#EAF6CC', sub: 'rgba(234,246,204,0.75)' }
+      : { bg: '#3F5028', ink: '#C4ED82', sub: 'rgba(196,237,130,0.78)' }
 
   const cumDonations = useMemo(() => {
     let cum = 0
@@ -101,7 +114,33 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
             >
               Your net gain
             </span>
-            <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>{cc(net)}</span>
+            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
+              <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>
+                {cc(net)}
+              </span>
+              {upliftPct != null && (
+                <span
+                  style={{
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    gap: 1,
+                    background: badge.bg,
+                    borderRadius: 999,
+                    padding: '10px 18px',
+                    lineHeight: 1.05,
+                    transition: 'background .3s ease',
+                  }}
+                >
+                  <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', color: badge.ink }}>
+                    +{Math.round(upliftPct)}%
+                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: badge.sub, whiteSpace: 'nowrap' }}>
+                    vs. Starter plan
+                  </span>
+                </span>
+              )}
+            </div>
           </div>
           <div style={{ width: 1, alignSelf: 'stretch', background: accent.rule }} />
           <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 26, fontWeight: 500, lineHeight: 1.28, letterSpacing: '-0.01em' }}>
@@ -168,6 +207,9 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
         niche={nicheObj}
         accent={accent}
       />
+
+      {/* Step 7 · Services & what's included */}
+      <ServicesSection payment={payment} />
     </div>
   )
 }

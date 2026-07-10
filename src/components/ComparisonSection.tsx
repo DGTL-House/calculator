@@ -1,47 +1,71 @@
+import { useState, type ReactNode } from 'react'
 import { cc, cf, nf } from '../model/format'
 import { TARIFF_ORDER, TARIFFS } from '../model/data'
 import { aggregate, feeFor, monthlyFor, periodRange } from '../model/projection'
-import type { Accent, Niche, Payment, Period, TariffKey } from '../model/types'
+import type { Accent, Metrics, Niche, Payment, Period } from '../model/types'
+import { Tip } from './InfoTip'
 import { PillGroup } from './PillGroup'
 
-type RowType = 'plain' | 'divider' | 'sub' | 'feegap' | 'net' | 'save'
+// Hover interpretations — same plain, second-person voice as the source.
+const TIPS = {
+  impressions: 'How many times your ads were shown in Google search.',
+  traffic: 'How many people clicked your ad and visited your website.',
+  conversions: 'How many meaningful actions people took — donations, sign-ups, calls and more.',
+  donationsUsd: 'Estimated donation revenue — donations multiplied by your average gift.',
+  donationsQty: 'How many donations came in.',
+  volunteers: 'How many people signed up to volunteer.',
+  registrations: 'How many people registered for an event or program.',
+  contactLeads: 'How many people submitted a contact form or enquiry.',
+  newsletter: 'How many people subscribed to your newsletter.',
+  phoneCalls: 'How many people called your organization from the ads.',
+  other: 'Other tracked goal completions on your site.',
+  serviceFee: 'What you pay dgtl-house over the selected period.',
+  netGain: 'Your donation revenue after subtracting our service fee.',
+  monthlyPayment: 'Your per-month price for this plan.',
+} as const
 
-interface CompRow {
-  type: RowType
+const CONV_SUB: { key: keyof Metrics; label: string; money?: boolean; tip: string }[] = [
+  { key: 'donUsd', label: 'Donations, $', money: true, tip: TIPS.donationsUsd },
+  { key: 'donQty', label: 'Donations, qty', tip: TIPS.donationsQty },
+  { key: 'volunteers', label: 'Volunteers', tip: TIPS.volunteers },
+  { key: 'registrations', label: 'Registrations', tip: TIPS.registrations },
+  { key: 'contactLeads', label: 'Contact Leads', tip: TIPS.contactLeads },
+  { key: 'newsletter', label: 'Newsletter Sign-ups', tip: TIPS.newsletter },
+  { key: 'phoneCalls', label: 'Phone Calls', tip: TIPS.phoneCalls },
+  { key: 'other', label: 'Other', tip: TIPS.other },
+]
+
+function Row({
+  cls,
+  label,
+  tip,
+  value,
+  caption,
+  extra,
+  onClick,
+  style,
+}: {
+  cls: string
   label: string
+  tip?: string
   value: string
   caption?: string
-}
-
-function buildRows(key: TariffKey, period: Period, payment: Payment, niche: Niche): CompRow[] {
-  const [start, end, count] = periodRange(period)
-  const a = aggregate(monthlyFor(key, niche), start, end)
-  const p = TARIFFS[key]
-  const fee = feeFor(key, payment)
-  const serviceFee = fee * count
-
-  const rows: CompRow[] = [
-    { type: 'plain', label: 'Impressions', value: nf(a.impressions) },
-    { type: 'plain', label: 'Traffic', value: nf(a.clicks) },
-    { type: 'divider', label: 'Conversions', value: nf(a.conv) },
-    { type: 'sub', label: 'Donations, $', value: cc(a.donUsd), caption: `av check — $${niche.check}` },
-    { type: 'sub', label: 'Donations, qty', value: nf(a.donQty) },
-    { type: 'sub', label: 'Volunteers', value: nf(a.volunteers) },
-    { type: 'sub', label: 'Registrations', value: nf(a.registrations) },
-    { type: 'sub', label: 'Contact Leads', value: nf(a.contactLeads) },
-    { type: 'sub', label: 'Newsletter Sign-ups', value: nf(a.newsletter) },
-    { type: 'sub', label: 'Phone Calls', value: nf(a.phoneCalls) },
-    { type: 'sub', label: 'Other', value: nf(a.other) },
-    { type: 'feegap', label: 'Service fee', value: cf(serviceFee) },
-    { type: 'net', label: 'Net donation gain', value: cc(a.donUsd - serviceFee) },
-    { type: 'plain', label: 'Monthly payment', value: `${cf(fee)}/mo` },
-  ]
-  if (payment === 'annual') {
-    const saveAmt = (p.feeM - p.feeA) * count
-    const savePct = ((p.feeM - p.feeA) / p.feeM) * 100
-    rows.push({ type: 'save', label: 'You save with Annual plan', value: `${cf(saveAmt)}  ·  ${savePct.toFixed(0)}%` })
-  }
-  return rows
+  extra?: ReactNode
+  onClick?: () => void
+  style?: React.CSSProperties
+}) {
+  return (
+    <div className={cls} style={{ ...(onClick ? { cursor: 'pointer' } : null), ...style }} onClick={onClick}>
+      <span className="cmp-label">
+        <span style={{ display: 'inline-flex', alignItems: 'center' }}>
+          {tip ? <Tip text={tip}>{label}</Tip> : label}
+          {extra}
+        </span>
+        {caption && <span className="cmp-caption">{caption}</span>}
+      </span>
+      <span className="cmp-value">{value}</span>
+    </div>
+  )
 }
 
 interface ComparisonSectionProps {
@@ -55,6 +79,21 @@ interface ComparisonSectionProps {
 
 export function ComparisonSection({ period, onPeriod, payment, onPayment, niche, accent }: ComparisonSectionProps) {
   const nicheLower = niche.title.toLowerCase()
+  const [convOpen, setConvOpen] = useState(false)
+  const [start, e2, count] = periodRange(period)
+
+  const chevron = (
+    <svg
+      width="15"
+      height="15"
+      viewBox="0 0 24 24"
+      fill="none"
+      style={{ marginLeft: 6, transition: 'transform .2s ease', transform: `rotate(${convOpen ? 180 : 0}deg)` }}
+    >
+      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  )
+
   return (
     <section style={{ marginTop: 64 }}>
       <div style={{ textAlign: 'center', marginBottom: 24 }}>
@@ -88,6 +127,11 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, niche,
         {TARIFF_ORDER.map((key) => {
           const p = TARIFFS[key]
           const best = key === 'growth'
+          const a = aggregate(monthlyFor(key, niche), start, e2)
+          const fee = feeFor(key, payment)
+          const serviceFee = fee * count
+          const saveAmt = (p.feeM - p.feeA) * count
+          const savePct = ((p.feeM - p.feeA) / p.feeM) * 100
           return (
             <div
               key={key}
@@ -132,15 +176,55 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, niche,
               )}
               <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em' }}>{p.name}</div>
               <div style={{ fontSize: 13, fontWeight: 300, color: 'var(--ink-400)', marginBottom: 16 }}>{p.tagline}</div>
-              {buildRows(key, period, payment, niche).map((r, i) => (
-                <div key={i} className={`cmp-${r.type}`}>
-                  <span className="cmp-label">
-                    {r.label}
-                    {r.caption && <span className="cmp-caption">{r.caption}</span>}
-                  </span>
-                  <span className="cmp-value">{r.value}</span>
+
+              <Row cls="cmp-plain" label="Impressions" tip={TIPS.impressions} value={nf(a.impressions)} />
+              <Row cls="cmp-plain" label="Traffic" tip={TIPS.traffic} value={nf(a.clicks)} />
+
+              {/* Conversions — same size as the rows above, toggles the details. */}
+              <Row
+                cls="cmp-plain"
+                label="Conversions"
+                tip={TIPS.conversions}
+                value={nf(a.conv)}
+                extra={chevron}
+                onClick={() => setConvOpen((o) => !o)}
+              />
+              {convOpen &&
+                CONV_SUB.map((s) => (
+                  <Row
+                    key={s.key}
+                    cls="cmp-sub"
+                    label={s.label}
+                    tip={s.tip}
+                    value={s.money ? cc(a[s.key]) : nf(a[s.key])}
+                    caption={s.key === 'donUsd' ? `av check — $${niche.check}` : undefined}
+                  />
+                ))}
+
+              <Row cls="cmp-feegap" label="Service fee" tip={TIPS.serviceFee} value={cf(serviceFee)} />
+
+              {/* Net donation gain — highlighted strip. */}
+              <Row
+                cls="cmp-net"
+                label="Net donation gain"
+                tip={TIPS.netGain}
+                value={cc(a.donUsd - serviceFee)}
+                style={{
+                  background: 'var(--cream-300)',
+                  borderRadius: 12,
+                  padding: '10px 12px',
+                  margin: '6px -8px 2px',
+                }}
+              />
+
+              <Row cls="cmp-plain" label="Monthly payment" tip={TIPS.monthlyPayment} value={`${cf(fee)}/mo`} />
+
+              {payment === 'annual' && (
+                <div className="cmp-save">
+                  <span className="cmp-label">You save with Annual plan</span>
+                  <span className="cmp-value">{`${cf(saveAmt)}  ·  ${savePct.toFixed(0)}%`}</span>
                 </div>
-              ))}
+              )}
             </div>
           )
         })}
