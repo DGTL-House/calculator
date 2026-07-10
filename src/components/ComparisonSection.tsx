@@ -203,17 +203,17 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, niche,
 
               <Row cls="cmp-feegap" label="Service fee" tip={TIPS.serviceFee} value={cf(serviceFee)} />
 
-              {/* Net donation gain — highlighted strip. */}
+              {/* Net donation gain — subtle light-gray underlay strip. */}
               <Row
                 cls="cmp-net"
                 label="Net donation gain"
                 tip={TIPS.netGain}
                 value={cc(a.donUsd - serviceFee)}
                 style={{
-                  background: 'var(--cream-300)',
+                  background: 'var(--cream-400)',
                   borderRadius: 12,
-                  padding: '10px 12px',
-                  margin: '6px -8px 2px',
+                  padding: '12px 14px',
+                  margin: '8px -12px 4px',
                 }}
               />
 

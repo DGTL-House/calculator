@@ -102,21 +102,19 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
             transition: 'background .3s ease, color .3s ease',
           }}
         >
-          <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 6 }}>
-            <span
-              style={{
-                fontFamily: 'var(--font-mono)',
-                fontSize: 12,
-                letterSpacing: '0.04em',
-                textTransform: 'uppercase',
-                opacity: 0.8,
-              }}
-            >
-              Your net gain
-            </span>
-            <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: 16 }}>
-              <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>
-                {cc(net)}
+          <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
+            {/* Top row: eyebrow + the "+XX% vs. Starter plan" badge (Growth/Impact only). */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+              <span
+                style={{
+                  fontFamily: 'var(--font-mono)',
+                  fontSize: 12,
+                  letterSpacing: '0.04em',
+                  textTransform: 'uppercase',
+                  opacity: 0.8,
+                }}
+              >
+                Your net gain
               </span>
               {upliftPct != null && (
                 <span
@@ -124,23 +122,25 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
                     display: 'inline-flex',
                     flexDirection: 'column',
                     alignItems: 'center',
-                    gap: 1,
+                    lineHeight: 1.02,
                     background: badge.bg,
                     borderRadius: 999,
-                    padding: '10px 18px',
-                    lineHeight: 1.05,
-                    transition: 'background .3s ease',
+                    padding: '8px 22px',
+                    transition: 'background .3s ease, color .3s ease',
                   }}
                 >
-                  <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.01em', color: badge.ink }}>
+                  <span style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', color: badge.ink }}>
                     +{Math.round(upliftPct)}%
                   </span>
-                  <span style={{ fontSize: 11, fontWeight: 500, color: badge.sub, whiteSpace: 'nowrap' }}>
+                  <span style={{ fontSize: 12, fontWeight: 500, color: badge.sub, whiteSpace: 'nowrap' }}>
                     vs. Starter plan
                   </span>
                 </span>
               )}
             </div>
+            <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>
+              {cc(net)}
+            </span>
           </div>
           <div style={{ width: 1, alignSelf: 'stretch', background: accent.rule }} />
           <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 26, fontWeight: 500, lineHeight: 1.28, letterSpacing: '-0.01em' }}>
