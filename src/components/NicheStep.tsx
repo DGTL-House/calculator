@@ -54,9 +54,8 @@ export function NicheStep({ niche, onSelectNiche, onContinue }: NicheStepProps) 
       <div className="card" style={{ marginTop: 36, maxWidth: 820, padding: '26px 20px' }}>
         <p style={{ margin: '0 0 22px', fontSize: 16, lineHeight: 1.55, fontWeight: 300, color: 'var(--ink-500)' }}>
           These projections are built on real benchmarks &mdash; our historical data from managing Google Ad Grants for{' '}
-          <strong style={{ fontWeight: 600, color: 'var(--ink-900)' }}>200+ US nonprofits</strong> over{' '}
-          <strong style={{ fontWeight: 600, color: 'var(--ink-900)' }}>10+ years</strong>, combined with performance
-          data shared directly by Google, our official partner.
+          <strong style={{ fontWeight: 600, color: 'var(--ink-900)' }}>200+ US nonprofits</strong>, combined with
+          performance data shared directly by Google, our official partner.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: 16 }}>
           {TRUST_ITEMS.map((t, i) => (

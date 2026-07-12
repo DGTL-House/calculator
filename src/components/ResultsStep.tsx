@@ -2,7 +2,7 @@ import { useMemo } from 'react'
 import { accentFor, MONTHS, NICHES } from '../model/data'
 import { cc, nf } from '../model/format'
 import { aggregate, feeFor, monthlyFor } from '../model/projection'
-import type { Payment, Period, TariffKey } from '../model/types'
+import type { Payment, TariffKey } from '../model/types'
 import { BreakdownTable } from './BreakdownTable'
 import { ComparisonSection } from './ComparisonSection'
 import { Eyebrow } from './Eyebrow'
@@ -27,11 +27,9 @@ interface ResultsStepProps {
   onTariff: (t: TariffKey) => void
   payment: Payment
   onPayment: (p: Payment) => void
-  period: Period
-  onPeriod: (p: Period) => void
 }
 
-export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, period, onPeriod }: ResultsStepProps) {
+export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: ResultsStepProps) {
   const accent = accentFor(payment)
   const nicheObj = NICHES[niche]
 
@@ -155,10 +153,10 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
         <div
           style={{
             display: 'flex',
-            alignItems: 'flex-end',
-            justifyContent: 'space-between',
-            gap: 20,
-            flexWrap: 'wrap',
+            flexDirection: 'column',
+            alignItems: 'center',
+            textAlign: 'center',
+            gap: 16,
             marginBottom: 20,
           }}
         >
@@ -166,7 +164,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
             <h2 style={{ margin: 0, fontWeight: 500, fontSize: 34, letterSpacing: '-0.02em' }}>
               Your month-by-month projection
             </h2>
-            <p style={{ margin: '6px 0 0', fontSize: 15, fontWeight: 300, color: 'var(--ink-500)' }}>
+            <p style={{ margin: '6px auto 0', maxWidth: 640, fontSize: 15, fontWeight: 300, color: 'var(--ink-500)' }}>
               Click any row, column header, or cell to highlight it. Gray spend cells mark months at the
               $10,000 Ad Grant cap.
             </p>
@@ -174,9 +172,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
           <PillGroup items={TARIFF_PILLS} current={tariff} onPick={onTariff} accent={accent} />
         </div>
         <div style={{ background: '#FFFFFF', borderRadius: 20, boxShadow: 'inset 0 0 0 1px var(--cream-400)', overflow: 'hidden' }}>
-          <div style={{ overflow: 'auto', maxHeight: '70vh' }}>
-            <BreakdownTable monthly={monthly} />
-          </div>
+          <BreakdownTable monthly={monthly} />
         </div>
       </section>
 
@@ -199,14 +195,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment, perio
       </section>
 
       {/* Step 6 · Plan comparison */}
-      <ComparisonSection
-        period={period}
-        onPeriod={onPeriod}
-        payment={payment}
-        onPayment={onPayment}
-        niche={nicheObj}
-        accent={accent}
-      />
+      <ComparisonSection payment={payment} onPayment={onPayment} niche={nicheObj} accent={accent} />
 
       {/* Step 7 · Services & what's included */}
       <ServicesSection payment={payment} />

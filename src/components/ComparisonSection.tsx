@@ -2,7 +2,7 @@ import { useState, type ReactNode } from 'react'
 import { cc, cf, nf } from '../model/format'
 import { TARIFF_ORDER, TARIFFS } from '../model/data'
 import { aggregate, feeFor, monthlyFor, periodRange } from '../model/projection'
-import type { Accent, Metrics, Niche, Payment, Period } from '../model/types'
+import type { Accent, Metrics, Niche, Payment } from '../model/types'
 import { Tip } from './InfoTip'
 import { PillGroup } from './PillGroup'
 
@@ -69,30 +69,30 @@ function Row({
 }
 
 interface ComparisonSectionProps {
-  period: Period
-  onPeriod: (p: Period) => void
   payment: Payment
   onPayment: (p: Payment) => void
   niche: Niche
   accent: Accent
 }
 
-export function ComparisonSection({ period, onPeriod, payment, onPayment, niche, accent }: ComparisonSectionProps) {
+const chevronFor = (open: boolean) => (
+  <svg
+    width="15"
+    height="15"
+    viewBox="0 0 24 24"
+    fill="none"
+    style={{ marginLeft: 6, transition: 'transform .2s ease', transform: `rotate(${open ? 180 : 0}deg)` }}
+  >
+    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+  </svg>
+)
+
+export function ComparisonSection({ payment, onPayment, niche, accent }: ComparisonSectionProps) {
   const nicheLower = niche.title.toLowerCase()
   const [convOpen, setConvOpen] = useState(false)
-  const [start, e2, count] = periodRange(period)
-
-  const chevron = (
-    <svg
-      width="15"
-      height="15"
-      viewBox="0 0 24 24"
-      fill="none"
-      style={{ marginLeft: 6, transition: 'transform .2s ease', transform: `rotate(${convOpen ? 180 : 0}deg)` }}
-    >
-      <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-    </svg>
-  )
+  const [agencyOpen, setAgencyOpen] = useState(false)
+  // Comparison always reflects the full 2-year window.
+  const [start, e2, count] = periodRange('total')
 
   return (
     <section style={{ marginTop: 64 }}>
@@ -101,16 +101,6 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, niche,
           Compare your projected results across plans
         </h2>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
-          <PillGroup
-            items={[
-              { label: 'Year 1', value: 'y1' },
-              { label: 'Year 2', value: 'y2' },
-              { label: 'Total 2 Years', value: 'total' },
-            ]}
-            current={period}
-            onPick={onPeriod}
-            accent={accent}
-          />
           <PillGroup
             items={[
               { label: 'Monthly', value: 'monthly' },
@@ -186,7 +176,7 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, niche,
                 label="Conversions"
                 tip={TIPS.conversions}
                 value={nf(a.conv)}
-                extra={chevron}
+                extra={chevronFor(convOpen)}
                 onClick={() => setConvOpen((o) => !o)}
               />
               {convOpen &&
@@ -200,8 +190,6 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, niche,
                     caption={s.key === 'donUsd' ? `av check — $${niche.check}` : undefined}
                   />
                 ))}
-
-              <Row cls="cmp-feegap" label="Service fee" tip={TIPS.serviceFee} value={cf(serviceFee)} />
 
               {/* Net donation gain — subtle light-gray underlay strip. */}
               <Row
@@ -217,9 +205,23 @@ export function ComparisonSection({ period, onPeriod, payment, onPayment, niche,
                 }}
               />
 
-              <Row cls="cmp-plain" label="Monthly payment" tip={TIPS.monthlyPayment} value={`${cf(fee)}/mo`} />
+              {/* Agency fee — collapsible list holding the two payment rows. */}
+              <Row
+                cls="cmp-feegap"
+                label="Agency fee"
+                tip={TIPS.serviceFee}
+                value={cf(serviceFee)}
+                extra={chevronFor(agencyOpen)}
+                onClick={() => setAgencyOpen((o) => !o)}
+              />
+              {agencyOpen && (
+                <>
+                  <Row cls="cmp-sub" label="2-Year Payment" tip={TIPS.serviceFee} value={cf(serviceFee)} />
+                  <Row cls="cmp-sub" label="Monthly payment" tip={TIPS.monthlyPayment} value={`${cf(fee)}/mo`} />
+                </>
+              )}
 
-              {payment === 'annual' && (
+              {payment === 'annual' && agencyOpen && (
                 <div className="cmp-save">
                   <span className="cmp-label">You save with Annual plan</span>
                   <span className="cmp-value">{`${cf(saveAmt)}  ·  ${savePct.toFixed(0)}%`}</span>

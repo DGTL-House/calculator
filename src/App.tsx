@@ -4,14 +4,13 @@ import { LoadingStep } from './components/LoadingStep'
 import { NicheStep } from './components/NicheStep'
 import { ResultsStep } from './components/ResultsStep'
 import { NICHES } from './model/data'
-import type { Payment, Period, Step, TariffKey } from './model/types'
+import type { Payment, Step, TariffKey } from './model/types'
 
 export default function App() {
   const [step, setStep] = useState<Step>('niche')
   const [niche, setNiche] = useState<number | null>(null)
   const [tariff, setTariff] = useState<TariffKey>('starter')
   const [payment, setPayment] = useState<Payment>('monthly')
-  const [period, setPeriod] = useState<Period>('total')
   const [loadIdx, setLoadIdx] = useState(0)
 
   const timers = useRef<{ interval?: ReturnType<typeof setInterval>; timeout?: ReturnType<typeof setTimeout> }>({})
@@ -51,15 +50,7 @@ export default function App() {
         <LoadingStep nicheName={niche != null ? NICHES[niche].title : 'your cause'} loadIdx={loadIdx} />
       )}
       {step === 'results' && niche != null && (
-        <ResultsStep
-          niche={niche}
-          tariff={tariff}
-          onTariff={setTariff}
-          payment={payment}
-          onPayment={setPayment}
-          period={period}
-          onPeriod={setPeriod}
-        />
+        <ResultsStep niche={niche} tariff={tariff} onTariff={setTariff} payment={payment} onPayment={setPayment} />
       )}
       <Footer />
     </div>

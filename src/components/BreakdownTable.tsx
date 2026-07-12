@@ -1,231 +1,269 @@
-import { useEffect, useRef, useState, type CSSProperties } from 'react'
-import { GRANT_CAP } from '../model/data'
-import { cf, nf } from '../model/format'
-import { aggregate } from '../model/projection'
-import type { Metrics, MonthRow } from '../model/types'
-import { Tip } from './InfoTip'
+import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { GRANT_CAP } from "../model/data";
+import { cf, nf } from "../model/format";
+import { aggregate } from "../model/projection";
+import type { Metrics, MonthRow } from "../model/types";
+import { Tip } from "./InfoTip";
 
 // Column interpretations shown on hover (same plain, second-person voice as
 // the source: "How much / how many … that month").
 const TIPS: Partial<Record<keyof Metrics, string>> = {
-  spend: 'How much of your free Google Ad Grant budget was used that month.',
-  impressions: 'How many times your ads were shown in Google search that month.',
-  clicks: 'How many people clicked your ad and visited your website.',
-  conv: 'How many meaningful actions people took — donations, sign-ups, calls and more.',
-  donQty: 'How many donations came in (multiplied by your average gift to get revenue).',
-  volunteers: 'How many people signed up to volunteer.',
-  registrations: 'How many people registered for an event or program.',
-  contactLeads: 'How many people submitted a contact form or enquiry.',
-  newsletter: 'How many people subscribed to your newsletter.',
-  phoneCalls: 'How many people called your organization from the ads.',
-  other: 'Other tracked goal completions on your site.',
-}
+  spend: "How much of your free Google Ad Grant budget was used that month.",
+  impressions:
+    "How many times your ads were shown in Google search that month.",
+  clicks: "How many people clicked your ad and visited your website.",
+  conv: "How many meaningful actions people took — donations, sign-ups, calls and more.",
+  donQty:
+    "How many donations came in (multiplied by your average gift to get revenue).",
+  volunteers: "How many people signed up to volunteer.",
+  registrations: "How many people registered for an event or program.",
+  contactLeads: "How many people submitted a contact form or enquiry.",
+  newsletter: "How many people subscribed to your newsletter.",
+  phoneCalls: "How many people called your organization from the ads.",
+  other: "Other tracked goal completions on your site.",
+};
 
-type ColFmt = 'cf' | 'nf'
+type ColFmt = "cf" | "nf";
 
 interface Col {
-  k: keyof Metrics
-  h: string
-  f: ColFmt
-  divider?: boolean
+  k: keyof Metrics;
+  h: string;
+  f: ColFmt;
+  divider?: boolean;
 }
 
-type MonthCol = { k: 'month'; h: string; first: true; alignLeft: true }
+type MonthCol = { k: "month"; h: string; first: true; alignLeft: true };
 
 // Columns match the reference sheet: Month, Spend, Impressions, Clicks |
 // Total conv, Donations, Volunteers, Registrations, Contact Leads, Newsletter,
 // Phone Calls, Other.
 const COLS: (Col | MonthCol)[] = [
-  { k: 'month', h: 'Month', first: true, alignLeft: true },
-  { k: 'spend', h: 'Spend ($)', f: 'cf' },
-  { k: 'impressions', h: 'Impressions', f: 'nf' },
-  { k: 'clicks', h: 'Clicks', f: 'nf' },
-  { k: 'conv', h: 'Total conv.', f: 'nf', divider: true },
-  { k: 'donQty', h: 'Donations', f: 'nf' },
-  { k: 'volunteers', h: 'Volunteers', f: 'nf' },
-  { k: 'registrations', h: 'Registrations', f: 'nf' },
-  { k: 'contactLeads', h: 'Contact Leads', f: 'nf' },
-  { k: 'newsletter', h: 'Newsletter', f: 'nf' },
-  { k: 'phoneCalls', h: 'Phone Calls', f: 'nf' },
-  { k: 'other', h: 'Other', f: 'nf' },
-]
+  { k: "month", h: "Month", first: true, alignLeft: true },
+  { k: "spend", h: "Spend ($)", f: "cf" },
+  { k: "impressions", h: "Impressions", f: "nf" },
+  { k: "clicks", h: "Clicks", f: "nf" },
+  { k: "conv", h: "Total conv.", f: "nf", divider: true },
+  { k: "donQty", h: "Donations", f: "nf" },
+  { k: "volunteers", h: "Volunteers", f: "nf" },
+  { k: "registrations", h: "Registrations", f: "nf" },
+  { k: "contactLeads", h: "Contact Leads", f: "nf" },
+  { k: "newsletter", h: "Newsletter", f: "nf" },
+  { k: "phoneCalls", h: "Phone Calls", f: "nf" },
+  { k: "other", h: "Other", f: "nf" },
+];
 
-const MAIN_SPAN = 4 // Month, Spend, Impressions, Clicks
-const CONV_SPAN = COLS.length - MAIN_SPAN
+const MAIN_SPAN = 4; // Month, Spend, Impressions, Clicks
+const CONV_SPAN = COLS.length - MAIN_SPAN;
 
 function fmtCell(col: Col, data: Metrics): string {
-  const v = data[col.k]
-  return col.f === 'cf' ? cf(v) : nf(v)
+  const v = data[col.k];
+  return col.f === "cf" ? cf(v) : nf(v);
 }
 
 interface TableRow {
-  data: Metrics
-  label: string
-  summary: boolean
-  idx: number
+  data: Metrics;
+  label: string;
+  summary: boolean;
+  idx: number;
 }
 
 function buildRows(monthly: MonthRow[]): TableRow[] {
-  const rows: TableRow[] = []
+  const rows: TableRow[] = [];
   const push = (data: Metrics, label: string, summary: boolean) =>
-    rows.push({ data, label, summary, idx: rows.length })
-  for (let i = 0; i < 12; i++) push(monthly[i], String(i + 1), false)
-  push(aggregate(monthly, 0, 12), 'First Year Total', true)
-  for (let i = 12; i < 24; i++) push(monthly[i], String(i + 1), false)
-  push(aggregate(monthly, 12, 24), 'Second Year Total', true)
-  push(aggregate(monthly, 0, 24), 'Total (2 Years)', true)
-  return rows
+    rows.push({ data, label, summary, idx: rows.length });
+  for (let i = 0; i < 12; i++) push(monthly[i], String(i + 1), false);
+  push(aggregate(monthly, 0, 12), "Year 1", true);
+  for (let i = 12; i < 24; i++) push(monthly[i], String(i + 1), false);
+  push(aggregate(monthly, 12, 24), "Year 2", true);
+  push(aggregate(monthly, 0, 24), "Total", true);
+  return rows;
 }
-
-// Height of the top group-header row, used to offset the sticky column row.
-const GROUP_HEAD_H = 43
 
 const groupHeadBase: CSSProperties = {
-  height: GROUP_HEAD_H,
-  padding: '13px 16px',
-  textAlign: 'left',
-  fontFamily: 'var(--font-mono)',
+  padding: "11px 8px",
+  textAlign: "left",
+  fontFamily: "var(--font-mono)",
   fontSize: 11,
-  letterSpacing: '0.04em',
-  textTransform: 'uppercase',
-  borderBottom: '1px solid #DBDBD8',
-  position: 'sticky',
-  top: 0,
-  zIndex: 3,
-}
+  letterSpacing: "0.04em",
+  textTransform: "uppercase",
+  borderBottom: "1px solid #DBDBD8",
+};
 
 export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
-  const [hlRows, setHlRows] = useState<Set<number>>(new Set())
-  const [hlCols, setHlCols] = useState<Set<number>>(new Set())
-  const [hlCells, setHlCells] = useState<Set<string>>(new Set())
-  const tableRef = useRef<HTMLTableElement>(null)
+  const [hlRows, setHlRows] = useState<Set<number>>(new Set());
+  const [hlCols, setHlCols] = useState<Set<number>>(new Set());
+  const [hlCells, setHlCells] = useState<Set<string>>(new Set());
+  const tableRef = useRef<HTMLTableElement>(null);
 
   // Clear all highlights when clicking anywhere outside the table.
   useEffect(() => {
     const onDown = (e: MouseEvent) => {
       if (tableRef.current && !tableRef.current.contains(e.target as Node)) {
-        setHlRows(new Set())
-        setHlCols(new Set())
-        setHlCells(new Set())
+        setHlRows(new Set());
+        setHlCols(new Set());
+        setHlCells(new Set());
       }
-    }
-    document.addEventListener('mousedown', onDown)
-    return () => document.removeEventListener('mousedown', onDown)
-  }, [])
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, []);
 
   const toggle = <T,>(set: Set<T>, setSet: (s: Set<T>) => void, key: T) => {
-    const next = new Set(set)
-    if (next.has(key)) next.delete(key)
-    else next.add(key)
-    setSet(next)
-  }
-  const isHi = (r: number, c: number) => hlRows.has(r) || hlCols.has(c) || hlCells.has(`${r}-${c}`)
+    const next = new Set(set);
+    if (next.has(key)) next.delete(key);
+    else next.add(key);
+    setSet(next);
+  };
+  const isHi = (r: number, c: number) =>
+    hlRows.has(r) || hlCols.has(c) || hlCells.has(`${r}-${c}`);
 
-  const rows = buildRows(monthly)
+  const rows = buildRows(monthly);
 
   return (
-    <table ref={tableRef} style={{ borderCollapse: 'collapse', width: '100%', minWidth: 1120 }}>
+    <table
+      ref={tableRef}
+      style={{
+        borderCollapse: "collapse",
+        width: "100%",
+        tableLayout: "fixed",
+      }}
+    >
+      {/* Fixed column widths — Month pinned narrow, the rest share the rest.
+          A colgroup is required because table-layout:fixed reads widths from
+          the first row, which here is a colSpan-only group-header row. */}
+      <colgroup>
+        {COLS.map((col) => (
+          <col
+            key={col.k}
+            style={col.k === "month" ? { width: 64 } : undefined}
+          />
+        ))}
+      </colgroup>
       <thead>
         <tr>
-          <th colSpan={MAIN_SPAN} style={{ ...groupHeadBase, color: '#3F5028', background: '#EAF6CC' }}>
+          <th
+            colSpan={MAIN_SPAN}
+            style={{
+              ...groupHeadBase,
+              color: "#3F5028",
+              background: "#EAF6CC",
+            }}
+          >
             Main indicators
           </th>
           <th
             colSpan={CONV_SPAN}
-            style={{ ...groupHeadBase, color: '#52504C', background: '#F5F4F0', borderLeft: '1px solid #DBDBD8' }}
+            style={{
+              ...groupHeadBase,
+              color: "#52504C",
+              background: "#F5F4F0",
+              borderLeft: "1px solid #DBDBD8",
+            }}
           >
             Conversions (meaningful results)
           </th>
         </tr>
         <tr>
           {COLS.map((col, c) => {
-            const alignLeft = 'alignLeft' in col && col.alignLeft
-            const first = 'first' in col && col.first
-            const tip = TIPS[col.k as keyof Metrics]
+            const alignLeft = "alignLeft" in col && col.alignLeft;
+            const isMonth = col.k === "month";
+            const tip = TIPS[col.k as keyof Metrics];
             return (
               <th
                 key={col.k}
                 title="Highlight column"
                 onClick={() => toggle(hlCols, setHlCols, c)}
                 style={{
-                  padding: '12px 16px',
-                  fontSize: 12,
+                  padding: isMonth ? "16px 8px" : "16px 10px",
+                  fontSize: 11,
                   fontWeight: 600,
-                  color: 'var(--ink-500)',
-                  whiteSpace: 'nowrap',
-                  borderBottom: '1px solid #DBDBD8',
-                  cursor: 'pointer',
-                  background: hlCols.has(c) ? '#D8F1A5' : 'var(--cream-100)',
-                  textAlign: alignLeft ? 'left' : 'right',
-                  position: 'sticky',
-                  top: GROUP_HEAD_H,
-                  zIndex: first ? 4 : 3,
-                  ...(first ? { left: 0 } : null),
-                  ...('divider' in col && col.divider ? { borderLeft: '1px solid #DBDBD8' } : null),
+                  color: "var(--ink-500)",
+                  lineHeight: 1.2,
+                  borderBottom: "1px solid #DBDBD8",
+                  cursor: "pointer",
+                  background: hlCols.has(c) ? "#D8F1A5" : "var(--cream-100)",
+                  textAlign: alignLeft ? "left" : "right",
+                  ...("divider" in col && col.divider
+                    ? { borderLeft: "1px solid #DBDBD8" }
+                    : null),
                 }}
               >
                 {tip ? (
-                  <Tip text={tip} align={c >= 7 ? 'right' : 'left'}>
+                  <Tip text={tip} align={c >= 7 ? "right" : "left"}>
                     {col.h}
                   </Tip>
                 ) : (
                   col.h
                 )}
               </th>
-            )
+            );
           })}
         </tr>
       </thead>
       <tbody>
         {rows.map((row) => {
-          const stripe = row.idx % 2 === 1
-          const baseBg = row.summary ? 'rgba(196,237,130,0.16)' : stripe ? '#F8F7F3' : '#FFFFFF'
+          const stripe = row.idx % 2 === 1;
+          const baseBg = row.summary
+            ? "rgba(196,237,130,0.16)"
+            : stripe
+              ? "#F8F7F3"
+              : "#FFFFFF";
           return (
             <tr key={row.idx}>
               {COLS.map((col, c) => {
-                const first = 'first' in col && col.first
-                const alignLeft = 'alignLeft' in col && col.alignLeft
-                const hi = isHi(row.idx, c)
-                const value = first ? row.label : fmtCell(col as Col, row.data)
+                const first = "first" in col && col.first;
+                const alignLeft = "alignLeft" in col && col.alignLeft;
+                const hi = isHi(row.idx, c);
+                const value = first ? row.label : fmtCell(col as Col, row.data);
                 // Grant fully utilised this month → shade the spend cell gray.
-                const atCap = !row.summary && col.k === 'spend' && row.data.spend >= GRANT_CAP - 0.5
-                let bg = baseBg
-                if (first) bg = row.summary ? '#F3F8E6' : stripe ? '#F8F7F3' : '#FFFFFF'
-                if (atCap) bg = '#DBDBD8'
-                if (hi) bg = first ? '#D8F1A5' : 'rgba(196,237,130,0.55)'
+                const atCap =
+                  !row.summary &&
+                  col.k === "spend" &&
+                  row.data.spend >= GRANT_CAP - 0.5;
+                let bg = baseBg;
+                if (first)
+                  bg = row.summary ? "#F3F8E6" : stripe ? "#F8F7F3" : "#FFFFFF";
+                if (atCap) bg = "#DBDBD8";
+                if (hi) bg = first ? "#D8F1A5" : "rgba(196,237,130,0.55)";
                 return (
                   <td
                     key={col.k}
                     onClick={() =>
-                      first ? toggle(hlRows, setHlRows, row.idx) : toggle(hlCells, setHlCells, `${row.idx}-${c}`)
+                      first
+                        ? toggle(hlRows, setHlRows, row.idx)
+                        : toggle(hlCells, setHlCells, `${row.idx}-${c}`)
                     }
                     style={{
-                      padding: '13px 16px',
-                      fontSize: 14,
-                      whiteSpace: 'nowrap',
-                      cursor: 'pointer',
-                      textAlign: alignLeft ? 'left' : 'right',
+                      padding: first ? "16px 8px" : "16px 14px",
+                      fontSize: 13,
+                      whiteSpace: "nowrap",
+                      cursor: "pointer",
+                      textAlign: alignLeft ? "left" : "right",
                       fontWeight: row.summary ? 700 : first ? 600 : 400,
-                      color: row.summary || first ? 'var(--ink-900)' : 'var(--ink-500)',
+                      color:
+                        row.summary || first
+                          ? "var(--ink-900)"
+                          : "var(--ink-500)",
                       background: bg,
-                      ...('divider' in col && col.divider ? { borderLeft: '1px solid #DBDBD8' } : null),
-                      ...(first ? { position: 'sticky', left: 0, zIndex: 1 } : null),
+                      ...("divider" in col && col.divider
+                        ? { borderLeft: "1px solid #DBDBD8" }
+                        : null),
                       ...(row.summary
                         ? {
-                            borderTop: '1px solid rgba(63,80,40,0.18)',
-                            borderBottom: '1px solid rgba(63,80,40,0.18)',
+                            borderTop: "1px solid rgba(63,80,40,0.18)",
+                            borderBottom: "1px solid rgba(63,80,40,0.18)",
                           }
                         : null),
                     }}
                   >
                     {value}
                   </td>
-                )
+                );
               })}
             </tr>
-          )
+          );
         })}
       </tbody>
     </table>
-  )
+  );
 }
