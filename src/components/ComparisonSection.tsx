@@ -1,8 +1,8 @@
 import { useState, type ReactNode } from 'react'
 import { cf, nf } from '../model/format'
 import { TARIFF_ORDER, TARIFFS } from '../model/data'
-import { aggregate, feeFor, monthlyFor, periodRange, valueMultiplier } from '../model/projection'
-import type { Accent, Metrics, Niche, Payment, Period } from '../model/types'
+import { aggregate, feeFor, monthlyFor, periodRange } from '../model/projection'
+import type { Accent, Niche, Payment, Period } from '../model/types'
 import { Tip } from './InfoTip'
 import { PillGroup } from './PillGroup'
 
@@ -12,18 +12,8 @@ const TIPS = {
   visitors: 'People who clicked your ad and visited your website.',
   adValue: 'The advertising Google covers for you through the Ad Grants program.',
   serviceFee: 'What you pay dgtl-house over the selected period.',
-  multiplier: 'Free ad value from Google divided by our agency fee.',
   monthlyPayment: 'Your per-month price for this plan.',
 } as const
-
-const ACTIONS: { key: keyof Metrics; label: string }[] = [
-  { key: 'volunteers', label: 'Expected volunteers' },
-  { key: 'registrations', label: 'Expected registrations' },
-  { key: 'contactLeads', label: 'Expected contact leads' },
-  { key: 'newsletter', label: 'Expected newsletter sign-ups' },
-  { key: 'phoneCalls', label: 'Expected phone calls' },
-  { key: 'other', label: 'Other expected actions' },
-]
 
 function Row({
   cls,
@@ -64,21 +54,8 @@ interface ComparisonSectionProps {
   accent: Accent
 }
 
-const chevronFor = (open: boolean) => (
-  <svg
-    width="15"
-    height="15"
-    viewBox="0 0 24 24"
-    fill="none"
-    style={{ marginLeft: 6, transition: 'transform .2s ease', transform: `rotate(${open ? 180 : 0}deg)` }}
-  >
-    <path d="M6 9l6 6 6-6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </svg>
-)
-
 export function ComparisonSection({ payment, niche, accent }: ComparisonSectionProps) {
   const nicheLower = niche.title.toLowerCase()
-  const [actionsOpen, setActionsOpen] = useState(false)
   const [period, setPeriod] = useState<Period>('total')
   const [start, e2, count] = periodRange(period)
 
@@ -110,7 +87,6 @@ export function ComparisonSection({ payment, niche, accent }: ComparisonSectionP
           const fee = feeFor(key, payment)
           const serviceFee = fee * count
           const saveAmt = (p.feeM - p.feeA) * count
-          const multiplier = valueMultiplier(a.spend, serviceFee)
           const savePct = ((p.feeM - p.feeA) / p.feeM) * 100
           return (
             <div
@@ -181,14 +157,6 @@ export function ComparisonSection({ payment, niche, accent }: ComparisonSectionP
 
               <Row cls="cmp-feegap" label="Agency fee" tip={TIPS.serviceFee} value={cf(serviceFee)} />
 
-              <Row
-                cls="cmp-net"
-                label={`×${multiplier.toFixed(1)} in ad value per $1 invested`}
-                tip={TIPS.multiplier}
-                value=""
-                style={{ background: 'var(--lime-100)', borderRadius: 12, padding: '12px 14px', margin: '8px -12px 4px' }}
-              />
-
               <Row cls="cmp-plain" label="Monthly payment" tip={TIPS.monthlyPayment} value={`${cf(fee)}/mo`} />
 
               {payment === 'annual' && (
@@ -197,20 +165,6 @@ export function ComparisonSection({ payment, niche, accent }: ComparisonSectionP
                   <span className="cmp-value">{`${cf(saveAmt)}  ·  ${savePct.toFixed(0)}%`}</span>
                 </div>
               )}
-
-              {/* Secondary info — collapsed by default */}
-              <Row
-                cls="cmp-plain"
-                label="What visitors might do on your site ↓"
-                value=""
-                extra={chevronFor(actionsOpen)}
-                onClick={() => setActionsOpen((o) => !o)}
-                style={{ marginTop: 10 }}
-              />
-              {actionsOpen &&
-                ACTIONS.map((x) => (
-                  <Row key={x.key} cls="cmp-sub cmp-small" label={x.label} value={nf(a[x.key])} />
-                ))}
             </div>
           )
         })}
