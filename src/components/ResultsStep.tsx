@@ -39,13 +39,10 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
   const fee24 = feeFor(tariff, payment) * MONTHS
   const net = netAdValue(total.spend, fee24)
 
-  // Net-gain uplift of the selected plan vs. the Starter plan (same niche +
-  // billing). Shown as a badge on Growth / Impact only.
-  const starterNet = useMemo(() => {
-    const t = aggregate(monthlyFor('starter', nicheObj), 0, MONTHS)
-    return netAdValue(t.spend, feeFor('starter', payment) * MONTHS)
-  }, [nicheObj, payment])
-  const upliftPct = tariff !== 'starter' && starterNet > 0 ? (net / starterNet - 1) * 100 : null
+  // Impressions / visitors uplift of the selected plan vs. the Starter plan
+  // (same niche). Shown as a badge on those two cards for Growth / Impact only.
+  const starterTotal = useMemo(() => aggregate(monthlyFor('starter', nicheObj), 0, MONTHS), [nicheObj])
+  const uplift = (cur: number, base: number) => (tariff !== 'starter' && base > 0 ? (cur / base - 1) * 100 : null)
   const badge =
     payment === 'annual'
       ? { bg: '#2D3A1C', ink: '#EAF6CC', sub: 'rgba(234,246,204,0.75)' }
@@ -58,8 +55,8 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
   const monthlySpend = useMemo(() => monthly.map((m) => m.spend), [monthly])
 
   const metricCards = [
-    { label: 'Ad reach (impressions)', value: nf(total.impressions), sub: 'times your nonprofit was seen in Google Search' },
-    { label: 'Relevant website visitors', value: nf(total.clicks), sub: 'high-intent people who visited your site' },
+    { label: 'Ad reach (impressions)', uplift: uplift(total.impressions, starterTotal.impressions), value: nf(total.impressions), sub: 'times your nonprofit was seen in Google Search' },
+    { label: 'Relevant website visitors', uplift: uplift(total.clicks, starterTotal.clicks), value: nf(total.clicks), sub: 'high-intent people who visited your site' },
     { label: 'Free ad value from Google', value: cf(total.spend), sub: 'in advertising covered by Google Ad Grants', color: accent.big },
   ]
 
@@ -75,8 +72,32 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
 
         <div className="grid-3" style={{ marginTop: 32 }}>
           {metricCards.map((card) => (
-            <div key={card.label} className="card" style={{ padding: '32px 30px', display: 'flex', flexDirection: 'column', gap: 10 }}>
+            <div key={card.label} className="card" style={{ padding: '32px 30px', display: 'flex', flexDirection: 'column', gap: 10, position: 'relative' }}>
               <span className="mono-label">{card.label}</span>
+              {card.uplift != null && (
+                <span
+                  style={{
+                    position: 'absolute',
+                    top: 16,
+                    right: 18,
+                    display: 'inline-flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    lineHeight: 1.02,
+                    background: badge.bg,
+                    borderRadius: 999,
+                    padding: '6px 16px',
+                    transition: 'background .3s ease, color .3s ease',
+                  }}
+                >
+                  <span style={{ fontSize: 22, fontWeight: 700, letterSpacing: '-0.02em', color: badge.ink }}>
+                    +{Math.round(card.uplift)}%
+                  </span>
+                  <span style={{ fontSize: 11, fontWeight: 500, color: badge.sub, whiteSpace: 'nowrap' }}>
+                    vs. Starter plan
+                  </span>
+                </span>
+              )}
               <span style={{ fontSize: 'clamp(36px, 8vw, 52px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1, color: card.color }}>
                 {card.value}
               </span>
@@ -100,7 +121,6 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
           }}
         >
           <div style={{ flex: '0 0 auto', display: 'flex', flexDirection: 'column', gap: 12 }}>
-            {/* Top row: eyebrow + the "+XX% vs. Starter plan" badge (Growth/Impact only). */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
               <span
                 style={{
@@ -113,27 +133,6 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
               >
                 Your net ad value
               </span>
-              {upliftPct != null && (
-                <span
-                  style={{
-                    display: 'inline-flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    lineHeight: 1.02,
-                    background: badge.bg,
-                    borderRadius: 999,
-                    padding: '8px 22px',
-                    transition: 'background .3s ease, color .3s ease',
-                  }}
-                >
-                  <span style={{ fontSize: 28, fontWeight: 700, letterSpacing: '-0.02em', color: badge.ink }}>
-                    +{Math.round(upliftPct)}%
-                  </span>
-                  <span style={{ fontSize: 12, fontWeight: 500, color: badge.sub, whiteSpace: 'nowrap' }}>
-                    vs. Starter plan
-                  </span>
-                </span>
-              )}
             </div>
             <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>
               {cf(net)}
