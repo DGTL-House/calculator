@@ -10,7 +10,7 @@ export default function App() {
   const [step, setStep] = useState<Step>('niche')
   const [niche, setNiche] = useState<number | null>(null)
   const [tariff, setTariff] = useState<TariffKey>('starter')
-  const [payment, setPayment] = useState<Payment>('monthly')
+  const payment: Payment = 'monthly' // Annual billing toggle removed — Monthly only
   const [loadIdx, setLoadIdx] = useState(0)
 
   const timers = useRef<{ interval?: ReturnType<typeof setInterval>; timeout?: ReturnType<typeof setTimeout> }>({})
@@ -50,7 +50,7 @@ export default function App() {
         <LoadingStep nicheName={niche != null ? NICHES[niche].title : 'your cause'} loadIdx={loadIdx} />
       )}
       {step === 'results' && niche != null && (
-        <ResultsStep niche={niche} tariff={tariff} onTariff={setTariff} payment={payment} onPayment={setPayment} />
+        <ResultsStep niche={niche} tariff={tariff} onTariff={setTariff} payment={payment} />
       )}
       <Footer />
     </div>

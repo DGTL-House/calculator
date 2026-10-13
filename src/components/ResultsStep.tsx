@@ -16,20 +16,14 @@ const TARIFF_PILLS = [
   { label: 'Impact Partner', value: 'impact' },
 ] as { label: string; value: TariffKey }[]
 
-const PAYMENT_PILLS = [
-  { label: 'Monthly', value: 'monthly' },
-  { label: 'Annual', value: 'annual' },
-] as { label: string; value: Payment }[]
-
 interface ResultsStepProps {
   niche: number
   tariff: TariffKey
   onTariff: (t: TariffKey) => void
   payment: Payment
-  onPayment: (p: Payment) => void
 }
 
-export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: ResultsStepProps) {
+export function ResultsStep({ niche, tariff, onTariff, payment }: ResultsStepProps) {
   const accent = accentFor(payment)
   const nicheObj = NICHES[niche]
 
@@ -67,7 +61,6 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 16, textAlign: 'center' }}>
           <Eyebrow>Choose your partnership plan</Eyebrow>
           <PillGroup items={TARIFF_PILLS} current={tariff} onPick={onTariff} accent={accent} />
-          <PillGroup items={PAYMENT_PILLS} current={payment} onPick={onPayment} accent={accent} />
         </div>
 
         <div className="grid-3" style={{ marginTop: 32 }}>
@@ -194,7 +187,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
       </section>
 
       {/* Step 6 · Plan comparison */}
-      <ComparisonSection payment={payment} onPayment={onPayment} niche={nicheObj} accent={accent} />
+      <ComparisonSection payment={payment} niche={nicheObj} accent={accent} />
 
       {/* Step 7 · Services & what's included */}
       <ServicesSection payment={payment} />

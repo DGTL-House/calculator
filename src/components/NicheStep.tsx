@@ -92,15 +92,11 @@ export function NicheStep({
             color: "var(--ink-500)",
           }}
         >
-          Projections are based on our historical performance data from{" "}
-          <strong style={{ fontWeight: 600, color: "var(--ink-900)" }}>
-            200+ US nonprofits
-          </strong>{" "}
-          over 10+ years of managing Google Ad Grants, combined with CTR, CPC,
-          and conversion-rate benchmarks shared directly by Google as our
-          official partner. Each niche has its own calibrated baseline because
-          search intent, cost per click, and audience behavior vary
-          significantly across causes.
+          Projections are based on our historical performance data from
+          managing Google Ad Grants, combined with CTR, CPC, and conversion-rate
+          benchmarks shared directly by Google as our official partner. Each
+          niche has its own calibrated baseline because search intent, cost per
+          click, and audience behavior vary significantly across causes.
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", rowGap: 16 }}>
           {TRUST_ITEMS.map((t, i) => (

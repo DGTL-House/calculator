@@ -60,7 +60,6 @@ function Row({
 
 interface ComparisonSectionProps {
   payment: Payment
-  onPayment: (p: Payment) => void
   niche: Niche
   accent: Accent
 }
@@ -77,7 +76,7 @@ const chevronFor = (open: boolean) => (
   </svg>
 )
 
-export function ComparisonSection({ payment, onPayment, niche, accent }: ComparisonSectionProps) {
+export function ComparisonSection({ payment, niche, accent }: ComparisonSectionProps) {
   const nicheLower = niche.title.toLowerCase()
   const [actionsOpen, setActionsOpen] = useState(false)
   const [period, setPeriod] = useState<Period>('total')
@@ -98,15 +97,6 @@ export function ComparisonSection({ payment, onPayment, niche, accent }: Compari
             ]}
             current={period}
             onPick={setPeriod}
-            accent={accent}
-          />
-          <PillGroup
-            items={[
-              { label: 'Monthly', value: 'monthly' },
-              { label: 'Annual', value: 'annual' },
-            ]}
-            current={payment}
-            onPick={onPayment}
             accent={accent}
           />
         </div>
