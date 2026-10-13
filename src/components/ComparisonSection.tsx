@@ -1,38 +1,28 @@
 import { useState, type ReactNode } from 'react'
-import { cc, cf, nf } from '../model/format'
+import { cf, nf } from '../model/format'
 import { TARIFF_ORDER, TARIFFS } from '../model/data'
-import { aggregate, feeFor, monthlyFor, periodRange } from '../model/projection'
-import type { Accent, Metrics, Niche, Payment } from '../model/types'
+import { aggregate, feeFor, monthlyFor, periodRange, valueMultiplier } from '../model/projection'
+import type { Accent, Metrics, Niche, Payment, Period } from '../model/types'
 import { Tip } from './InfoTip'
 import { PillGroup } from './PillGroup'
 
 // Hover interpretations — same plain, second-person voice as the source.
 const TIPS = {
-  impressions: 'How many times your ads were shown in Google search.',
-  traffic: 'How many people clicked your ad and visited your website.',
-  conversions: 'How many meaningful actions people took — donations, sign-ups, calls and more.',
-  donationsUsd: 'Estimated donation revenue — donations multiplied by your average gift.',
-  donationsQty: 'How many donations came in.',
-  volunteers: 'How many people signed up to volunteer.',
-  registrations: 'How many people registered for an event or program.',
-  contactLeads: 'How many people submitted a contact form or enquiry.',
-  newsletter: 'How many people subscribed to your newsletter.',
-  phoneCalls: 'How many people called your organization from the ads.',
-  other: 'Other tracked goal completions on your site.',
+  impressions: 'How many times your ads were shown to people searching online.',
+  visitors: 'People who clicked your ad and visited your website.',
+  adValue: 'The advertising Google covers for you through the Ad Grants program.',
   serviceFee: 'What you pay dgtl-house over the selected period.',
-  netGain: 'Your donation revenue after subtracting our service fee.',
+  multiplier: 'Free ad value from Google divided by our agency fee.',
   monthlyPayment: 'Your per-month price for this plan.',
 } as const
 
-const CONV_SUB: { key: keyof Metrics; label: string; money?: boolean; tip: string }[] = [
-  { key: 'donUsd', label: 'Donations, $', money: true, tip: TIPS.donationsUsd },
-  { key: 'donQty', label: 'Donations, qty', tip: TIPS.donationsQty },
-  { key: 'volunteers', label: 'Volunteers', tip: TIPS.volunteers },
-  { key: 'registrations', label: 'Registrations', tip: TIPS.registrations },
-  { key: 'contactLeads', label: 'Contact Leads', tip: TIPS.contactLeads },
-  { key: 'newsletter', label: 'Newsletter Sign-ups', tip: TIPS.newsletter },
-  { key: 'phoneCalls', label: 'Phone Calls', tip: TIPS.phoneCalls },
-  { key: 'other', label: 'Other', tip: TIPS.other },
+const ACTIONS: { key: keyof Metrics; label: string }[] = [
+  { key: 'volunteers', label: 'Expected volunteers' },
+  { key: 'registrations', label: 'Expected registrations' },
+  { key: 'contactLeads', label: 'Expected contact leads' },
+  { key: 'newsletter', label: 'Expected newsletter sign-ups' },
+  { key: 'phoneCalls', label: 'Expected phone calls' },
+  { key: 'other', label: 'Other expected actions' },
 ]
 
 function Row({
@@ -89,10 +79,9 @@ const chevronFor = (open: boolean) => (
 
 export function ComparisonSection({ payment, onPayment, niche, accent }: ComparisonSectionProps) {
   const nicheLower = niche.title.toLowerCase()
-  const [convOpen, setConvOpen] = useState(false)
-  const [agencyOpen, setAgencyOpen] = useState(false)
-  // Comparison always reflects the full 2-year window.
-  const [start, e2, count] = periodRange('total')
+  const [actionsOpen, setActionsOpen] = useState(false)
+  const [period, setPeriod] = useState<Period>('total')
+  const [start, e2, count] = periodRange(period)
 
   return (
     <section style={{ marginTop: 64 }}>
@@ -101,6 +90,16 @@ export function ComparisonSection({ payment, onPayment, niche, accent }: Compari
           Compare your projected results across plans
         </h2>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 16, flexWrap: 'wrap' }}>
+          <PillGroup
+            items={[
+              { label: 'Year 1', value: 'y1' },
+              { label: 'Year 2', value: 'y2' },
+              { label: 'Total 2 Years', value: 'total' },
+            ]}
+            current={period}
+            onPick={setPeriod}
+            accent={accent}
+          />
           <PillGroup
             items={[
               { label: 'Monthly', value: 'monthly' },
@@ -121,6 +120,7 @@ export function ComparisonSection({ payment, onPayment, niche, accent }: Compari
           const fee = feeFor(key, payment)
           const serviceFee = fee * count
           const saveAmt = (p.feeM - p.feeA) * count
+          const multiplier = valueMultiplier(a.spend, serviceFee)
           const savePct = ((p.feeM - p.feeA) / p.feeM) * 100
           return (
             <div
@@ -167,66 +167,60 @@ export function ComparisonSection({ payment, onPayment, niche, accent }: Compari
               <div style={{ fontSize: 20, fontWeight: 700, letterSpacing: '-0.01em' }}>{p.name}</div>
               <div style={{ fontSize: 13, fontWeight: 300, color: 'var(--ink-400)', marginBottom: 16 }}>{p.tagline}</div>
 
-              <Row cls="cmp-plain" label="Impressions" tip={TIPS.impressions} value={nf(a.impressions)} />
-              <Row cls="cmp-plain" label="Traffic" tip={TIPS.traffic} value={nf(a.clicks)} />
+              {/* Hero metrics */}
+              <div className="cmp-hero">
+                <div className="cmp-hero-item">
+                  <span className="cmp-hero-label">
+                    <Tip text={TIPS.impressions}>Ad reach (impressions)</Tip>
+                  </span>
+                  <span className="cmp-hero-value">{nf(a.impressions)}</span>
+                </div>
+                <div className="cmp-hero-item">
+                  <span className="cmp-hero-label">
+                    <Tip text={TIPS.visitors}>Relevant visitors</Tip>
+                  </span>
+                  <span className="cmp-hero-value">{nf(a.clicks)}</span>
+                </div>
+                <div className="cmp-hero-item">
+                  <span className="cmp-hero-label">
+                    <Tip text={TIPS.adValue}>Free ad value from Google</Tip>
+                  </span>
+                  <span className="cmp-hero-value">{cf(a.spend)}</span>
+                </div>
+              </div>
 
-              {/* Conversions — same size as the rows above, toggles the details. */}
-              <Row
-                cls="cmp-plain"
-                label="Conversions"
-                tip={TIPS.conversions}
-                value={nf(a.conv)}
-                extra={chevronFor(convOpen)}
-                onClick={() => setConvOpen((o) => !o)}
-              />
-              {convOpen &&
-                CONV_SUB.map((s) => (
-                  <Row
-                    key={s.key}
-                    cls="cmp-sub"
-                    label={s.label}
-                    tip={s.tip}
-                    value={s.money ? cc(a[s.key]) : nf(a[s.key])}
-                    caption={s.key === 'donUsd' ? `av check — $${niche.check}` : undefined}
-                  />
-                ))}
+              <Row cls="cmp-feegap" label="Agency fee" tip={TIPS.serviceFee} value={cf(serviceFee)} />
 
-              {/* Net donation gain — subtle light-gray underlay strip. */}
               <Row
                 cls="cmp-net"
-                label="Net donation gain"
-                tip={TIPS.netGain}
-                value={cc(a.donUsd - serviceFee)}
-                style={{
-                  background: 'var(--cream-400)',
-                  borderRadius: 12,
-                  padding: '12px 14px',
-                  margin: '8px -12px 4px',
-                }}
+                label={`×${multiplier.toFixed(1)} in ad value per $1 invested`}
+                tip={TIPS.multiplier}
+                value=""
+                style={{ background: 'var(--lime-100)', borderRadius: 12, padding: '12px 14px', margin: '8px -12px 4px' }}
               />
 
-              {/* Agency fee — collapsible list holding the two payment rows. */}
-              <Row
-                cls="cmp-feegap"
-                label="Agency fee"
-                tip={TIPS.serviceFee}
-                value={cf(serviceFee)}
-                extra={chevronFor(agencyOpen)}
-                onClick={() => setAgencyOpen((o) => !o)}
-              />
-              {agencyOpen && (
-                <>
-                  <Row cls="cmp-sub" label="2-Year Payment" tip={TIPS.serviceFee} value={cf(serviceFee)} />
-                  <Row cls="cmp-sub" label="Monthly payment" tip={TIPS.monthlyPayment} value={`${cf(fee)}/mo`} />
-                </>
-              )}
+              <Row cls="cmp-plain" label="Monthly payment" tip={TIPS.monthlyPayment} value={`${cf(fee)}/mo`} />
 
-              {payment === 'annual' && agencyOpen && (
+              {payment === 'annual' && (
                 <div className="cmp-save">
                   <span className="cmp-label">You save with Annual plan</span>
                   <span className="cmp-value">{`${cf(saveAmt)}  ·  ${savePct.toFixed(0)}%`}</span>
                 </div>
               )}
+
+              {/* Secondary info — collapsed by default */}
+              <Row
+                cls="cmp-plain"
+                label="What visitors might do on your site ↓"
+                value=""
+                extra={chevronFor(actionsOpen)}
+                onClick={() => setActionsOpen((o) => !o)}
+                style={{ marginTop: 10 }}
+              />
+              {actionsOpen &&
+                ACTIONS.map((x) => (
+                  <Row key={x.key} cls="cmp-sub cmp-small" label={x.label} value={nf(a[x.key])} />
+                ))}
             </div>
           )
         })}
@@ -243,8 +237,8 @@ export function ComparisonSection({ payment, onPayment, niche, accent }: Compari
           color: 'var(--ink-400)',
         }}
       >
-        These projections are estimates based on industry benchmarks for {nicheLower}. Actual results depend on website
-        quality, mission clarity, audience size, and other factors.
+        These projections are estimates based on industry benchmarks for {nicheLower} and our historical performance
+        data. Actual results depend on your website quality, mission clarity, keyword targeting, and other factors.
       </p>
     </section>
   )

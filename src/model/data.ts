@@ -19,47 +19,47 @@ const uniform = (v: number): NicheCoef => ({
 })
 
 /**
- * Niches with per-metric coefficients and average donation checks, ported
+ * Niches with per-metric coefficients, ported
  * verbatim from the reference sheet "КОЭФИЦИЕНТЫ ПО НИШАМ" (tab Показатели).
  * Reference niche = Education & Scholarships (all coefficients 1.00).
  */
 export const NICHES: Niche[] = [
-  { title: 'Education & Scholarships', desc: 'Schools, literacy, tutoring, scholarships, higher education, research', check: 150, coef: uniform(1.0) },
+  { title: 'Education & Scholarships', desc: 'Schools, literacy, tutoring, scholarships, higher education, research', coef: uniform(1.0) },
   {
     title: 'Youth & Family Services',
     desc: 'Mentoring, after-school programs, childcare, foster care, adoption, family support',
-    check: 115,
+   
     coef: { spend: 1.54, impressions: 1.25, clicks: 1.25, conv: 1.53, donations: 1.13, volunteers: 1.13, registrations: 1.17, contactLeads: 1.15, newsletter: 0.73, phoneCalls: 1.25, other: 1.25 },
   },
-  { title: 'Health & Medical Support', desc: 'Healthcare access, community clinics, medical missions, rehabilitation, patient support', check: 155, coef: { ...uniform(0.72), spend: 0.7 } },
-  { title: 'Disease-Specific Organizations', desc: "Cancer, Alzheimer's, rare diseases, diabetes and other conditions", check: 165, coef: uniform(0.75) },
-  { title: 'Mental Health & Addiction Recovery', desc: 'Mental health, crisis support, suicide prevention, substance abuse and recovery', check: 125, coef: uniform(0.8) },
-  { title: 'Hunger & Basic Needs', desc: 'Food banks, clothing assistance, poverty relief and essential supplies', check: 165, coef: uniform(0.95) },
-  { title: 'Homelessness & Housing', desc: 'Shelters, affordable housing, transitional housing and housing assistance', check: 145, coef: uniform(0.92) },
-  { title: 'Domestic Violence & Victim Support', desc: 'Domestic violence, sexual assault, trafficking prevention and survivor assistance', check: 120, coef: uniform(0.79) },
-  { title: 'Veterans & Military Families', desc: 'Veteran services, military transition support, family assistance, PTSD support, benefits navigation', check: 145, coef: uniform(0.68) },
-  { title: 'Disability & Accessibility', desc: 'Developmental disabilities, physical disabilities, accessibility and adaptive programs', check: 125, coef: { ...uniform(0.72), spend: 0.7 } },
-  { title: 'Seniors & Aging Services', desc: 'Senior centers, elder care, in-home assistance, companionship programs, aging-in-place support', check: 115, coef: uniform(0.8) },
+  { title: 'Health & Medical Support', desc: 'Healthcare access, community clinics, medical missions, rehabilitation, patient support', coef: { ...uniform(0.72), spend: 0.7 } },
+  { title: 'Disease-Specific Organizations', desc: "Cancer, Alzheimer's, rare diseases, diabetes and other conditions", coef: uniform(0.75) },
+  { title: 'Mental Health & Addiction Recovery', desc: 'Mental health, crisis support, suicide prevention, substance abuse and recovery', coef: uniform(0.8) },
+  { title: 'Hunger & Basic Needs', desc: 'Food banks, clothing assistance, poverty relief and essential supplies', coef: uniform(0.95) },
+  { title: 'Homelessness & Housing', desc: 'Shelters, affordable housing, transitional housing and housing assistance', coef: uniform(0.92) },
+  { title: 'Domestic Violence & Victim Support', desc: 'Domestic violence, sexual assault, trafficking prevention and survivor assistance', coef: uniform(0.79) },
+  { title: 'Veterans & Military Families', desc: 'Veteran services, military transition support, family assistance, PTSD support, benefits navigation', coef: uniform(0.68) },
+  { title: 'Disability & Accessibility', desc: 'Developmental disabilities, physical disabilities, accessibility and adaptive programs', coef: { ...uniform(0.72), spend: 0.7 } },
+  { title: 'Seniors & Aging Services', desc: 'Senior centers, elder care, in-home assistance, companionship programs, aging-in-place support', coef: uniform(0.8) },
   {
     title: 'Animals & Pet Rescue',
     desc: 'Shelters, rescues, adoption and animal welfare',
-    check: 70,
+   
     coef: { spend: 1.5, impressions: 1.25, clicks: 1.25, conv: 1.5, donations: 1.1, volunteers: 1.1, registrations: 1.1, contactLeads: 1.1, newsletter: 0.7, phoneCalls: 1.25, other: 1.25 },
   },
-  { title: 'Wildlife & Environment', desc: 'Wildlife conservation, climate, sustainability, land and water protection', check: 95, coef: uniform(0.79) },
-  { title: 'Arts, Culture & History', desc: 'Museums, music, theater, cultural organizations and historical preservation', check: 110, coef: { ...uniform(0.72), spend: 0.7 } },
-  { title: 'Churches, Ministries & Faith-Based Organizations', desc: 'Religious congregations, ministries, faith-based outreach, community worship programs', check: 135, coef: uniform(0.68) },
-  { title: 'Civil Rights, Advocacy & Legal Aid', desc: 'Civil rights, social justice, legal assistance, civic education and victim advocacy', check: 125, coef: uniform(1.12) },
-  { title: 'International Aid & Global Development', desc: 'Humanitarian aid, global health, clean water, international education and refugee support', check: 135, coef: uniform(0.75) },
-  { title: 'Disaster Relief & Emergency Services', desc: 'Disaster response, fire and rescue, EMS and search-and-rescue organizations', check: 145, coef: uniform(0.92) },
-  { title: 'Community & Workforce Development', desc: 'Job training, employment assistance, financial literacy, entrepreneurship and community development', check: 120, coef: uniform(0.89) },
+  { title: 'Wildlife & Environment', desc: 'Wildlife conservation, climate, sustainability, land and water protection', coef: uniform(0.79) },
+  { title: 'Arts, Culture & History', desc: 'Museums, music, theater, cultural organizations and historical preservation', coef: { ...uniform(0.72), spend: 0.7 } },
+  { title: 'Churches, Ministries & Faith-Based Organizations', desc: 'Religious congregations, ministries, faith-based outreach, community worship programs', coef: uniform(0.68) },
+  { title: 'Civil Rights, Advocacy & Legal Aid', desc: 'Civil rights, social justice, legal assistance, civic education and victim advocacy', coef: uniform(1.12) },
+  { title: 'International Aid & Global Development', desc: 'Humanitarian aid, global health, clean water, international education and refugee support', coef: uniform(0.75) },
+  { title: 'Disaster Relief & Emergency Services', desc: 'Disaster response, fire and rescue, EMS and search-and-rescue organizations', coef: uniform(0.92) },
+  { title: 'Community & Workforce Development', desc: 'Job training, employment assistance, financial literacy, entrepreneurship and community development', coef: uniform(0.89) },
   {
     title: 'Sports & Recreation',
     desc: 'Youth sports, community recreation and adaptive sports',
-    check: 85,
+   
     coef: { spend: 1.5, impressions: 1.25, clicks: 1.25, conv: 1.5, donations: 1.1, volunteers: 1.1, registrations: 1.1, contactLeads: 1.1, newsletter: 0.7, phoneCalls: 1.25, other: 1.25 },
   },
-  { title: 'Other Nonprofit Organizations', desc: 'Any registered 501(c)(3) mission not listed above', check: 125, coef: uniform(0.95) },
+  { title: 'Other Nonprofit Organizations', desc: 'Any registered 501(c)(3) mission not listed above', coef: uniform(0.95) },
 ]
 
 /**
@@ -83,20 +83,6 @@ export const TARIFF_ORDER: TariffKey[] = ['starter', 'growth', 'impact']
  * [spend, impressions, clicks, conv, donations, volunteers, registrations,
  *  contactLeads, newsletter, phoneCalls, other]
  */
-/**
- * Exact 2-year donation counts for the reference niche (Education), derived
- * from the sheet's donation-income figures ÷ $150 check:
- *   $250 → $30,687.21/150 = 204.5814,  $500 → $52,350/150 = 349,
- *   $1000 → $88,582.35/150 = 590.549.
- * The monthly donation integers in BASE_TABLES are the sheet's rounded display
- * values; calculations scale them to sum to these fractional totals so donation
- * income matches the sheet to the cent, while the table still shows integers.
- */
-export const DONATIONS_2Y: Record<TariffKey, number> = {
-  starter: 204.5814,
-  growth: 349,
-  impact: 590.549,
-}
 
 export type BaseRow = [number, number, number, number, number, number, number, number, number, number, number]
 

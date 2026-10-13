@@ -25,8 +25,6 @@ export interface NicheCoef {
 export interface Niche {
   title: string
   desc: string
-  /** Average donation, $ (Средний Донат) */
-  check: number
   coef: NicheCoef
 }
 
@@ -44,9 +42,6 @@ export interface Metrics {
   spend: number
   impressions: number
   clicks: number
-  conv: number
-  donQty: number
-  donUsd: number
   volunteers: number
   registrations: number
   contactLeads: number

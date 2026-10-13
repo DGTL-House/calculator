@@ -343,3 +343,37 @@ h6 {
   font-weight: 700;
   color: var(--lime-700);
 }
+
+/* ── comparison hero metrics ── */
+.cmp-hero {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding: 16px 16px;
+  margin-bottom: 8px;
+  background: var(--lime-100);
+  border-radius: 16px;
+}
+.cmp-hero-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.cmp-hero-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--lime-700);
+}
+.cmp-hero-value {
+  font-size: 30px;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+  color: var(--ink-900);
+}
+.cmp-small .cmp-label,
+.cmp-small .cmp-value {
+  font-size: 12px;
+}

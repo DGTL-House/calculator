@@ -1,64 +1,45 @@
-import { useEffect, useRef, useState, type CSSProperties } from "react";
+import { useEffect, useRef, useState } from "react";
 import { GRANT_CAP } from "../model/data";
-import { cf, nf } from "../model/format";
+import { cc, cf, nf } from "../model/format";
 import { aggregate } from "../model/projection";
 import type { Metrics, MonthRow } from "../model/types";
 import { Tip } from "./InfoTip";
 
-// Column interpretations shown on hover (same plain, second-person voice as
-// the source: "How much / how many … that month").
-const TIPS: Partial<Record<keyof Metrics, string>> = {
+// Column interpretations shown on hover, in plain second-person language.
+const TIPS: Record<string, string> = {
   spend: "How much of your free Google Ad Grant budget was used that month.",
-  impressions:
-    "How many times your ads were shown in Google search that month.",
-  clicks: "How many people clicked your ad and visited your website.",
-  conv: "How many meaningful actions people took — donations, sign-ups, calls and more.",
-  donQty:
-    "How many donations came in (multiplied by your average gift to get revenue).",
-  volunteers: "How many people signed up to volunteer.",
-  registrations: "How many people registered for an event or program.",
-  contactLeads: "How many people submitted a contact form or enquiry.",
-  newsletter: "How many people subscribed to your newsletter.",
-  phoneCalls: "How many people called your organization from the ads.",
-  other: "Other tracked goal completions on your site.",
+  impressions: "How many times your ads were shown to people searching online.",
+  ctr: "The share of people who saw your ad and clicked on it.",
+  cpc: "The average cost per click (covered by Google, not your budget).",
+  clicks: "People who clicked your ad and visited your website.",
 };
 
-type ColFmt = "cf" | "nf";
-
 interface Col {
-  k: keyof Metrics;
+  k: string;
   h: string;
-  f: ColFmt;
-  divider?: boolean;
+  /** hero metrics get an accent header and heavier weight */
+  hero?: boolean;
+  fmt?: (d: Metrics) => string;
+  first?: boolean;
 }
 
-type MonthCol = { k: "month"; h: string; first: true; alignLeft: true };
-
-// Columns match the reference sheet: Month, Spend, Impressions, Clicks |
-// Total conv, Donations, Volunteers, Registrations, Contact Leads, Newsletter,
-// Phone Calls, Other.
-const COLS: (Col | MonthCol)[] = [
-  { k: "month", h: "Month", first: true, alignLeft: true },
-  { k: "spend", h: "Spend ($)", f: "cf" },
-  { k: "impressions", h: "Impressions", f: "nf" },
-  { k: "clicks", h: "Clicks", f: "nf" },
-  { k: "conv", h: "Total conv.", f: "nf", divider: true },
-  { k: "donQty", h: "Donations", f: "nf" },
-  { k: "volunteers", h: "Volunteers", f: "nf" },
-  { k: "registrations", h: "Registrations", f: "nf" },
-  { k: "contactLeads", h: "Contact Leads", f: "nf" },
-  { k: "newsletter", h: "Newsletter", f: "nf" },
-  { k: "phoneCalls", h: "Phone Calls", f: "nf" },
-  { k: "other", h: "Other", f: "nf" },
+// Month | Spend | Impressions | CTR % | CPC | Relevant visitors
+// CTR and CPC are derived from the aggregated row, so totals stay consistent.
+const COLS: Col[] = [
+  { k: "month", h: "Month", first: true },
+  { k: "spend", h: "Spend ($)", fmt: (d) => cf(d.spend) },
+  { k: "impressions", h: "Impressions", hero: true, fmt: (d) => nf(d.impressions) },
+  {
+    k: "ctr",
+    h: "CTR %",
+    fmt: (d) => (d.impressions ? ((d.clicks / d.impressions) * 100).toFixed(2) + "%" : "—"),
+  },
+  { k: "cpc", h: "CPC", fmt: (d) => (d.clicks ? cc(d.spend / d.clicks) : "—") },
+  { k: "clicks", h: "Relevant visitors", hero: true, fmt: (d) => nf(d.clicks) },
 ];
 
-const MAIN_SPAN = 4; // Month, Spend, Impressions, Clicks
-const CONV_SPAN = COLS.length - MAIN_SPAN;
-
-function fmtCell(col: Col, data: Metrics): string {
-  const v = data[col.k];
-  return col.f === "cf" ? cf(v) : nf(v);
-}
+const HERO_HEAD = "#E3F5B8";
+const HERO_CELL = "rgba(196,237,130,0.12)";
 
 interface TableRow {
   data: Metrics;
@@ -78,16 +59,6 @@ function buildRows(monthly: MonthRow[]): TableRow[] {
   push(aggregate(monthly, 0, 24), "Total", true);
   return rows;
 }
-
-const groupHeadBase: CSSProperties = {
-  padding: "11px 8px",
-  textAlign: "left",
-  fontFamily: "var(--font-mono)",
-  fontSize: 11,
-  letterSpacing: "0.04em",
-  textTransform: "uppercase",
-  borderBottom: "1px solid #DBDBD8",
-};
 
 export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
   const [hlRows, setHlRows] = useState<Set<number>>(new Set());
@@ -128,9 +99,7 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
         tableLayout: "fixed",
       }}
     >
-      {/* Fixed column widths — Month pinned narrow, the rest share the rest.
-          A colgroup is required because table-layout:fixed reads widths from
-          the first row, which here is a colSpan-only group-header row. */}
+      {/* Fixed column widths — Month pinned narrow, the rest share the rest. */}
       <colgroup>
         {COLS.map((col) => (
           <col
@@ -141,33 +110,9 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
       </colgroup>
       <thead>
         <tr>
-          <th
-            colSpan={MAIN_SPAN}
-            style={{
-              ...groupHeadBase,
-              color: "#3F5028",
-              background: "#EAF6CC",
-            }}
-          >
-            Main indicators
-          </th>
-          <th
-            colSpan={CONV_SPAN}
-            style={{
-              ...groupHeadBase,
-              color: "#52504C",
-              background: "#F5F4F0",
-              borderLeft: "1px solid #DBDBD8",
-            }}
-          >
-            Conversions (meaningful results)
-          </th>
-        </tr>
-        <tr>
           {COLS.map((col, c) => {
-            const alignLeft = "alignLeft" in col && col.alignLeft;
             const isMonth = col.k === "month";
-            const tip = TIPS[col.k as keyof Metrics];
+            const tip = TIPS[col.k];
             return (
               <th
                 key={col.k}
@@ -175,21 +120,22 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
                 onClick={() => toggle(hlCols, setHlCols, c)}
                 style={{
                   padding: isMonth ? "16px 8px" : "16px 10px",
-                  fontSize: 11,
-                  fontWeight: 600,
+                  fontSize: col.hero ? 12 : 11,
+                  fontWeight: col.hero ? 700 : 600,
                   color: "var(--ink-500)",
                   lineHeight: 1.2,
                   borderBottom: "1px solid #DBDBD8",
                   cursor: "pointer",
-                  background: hlCols.has(c) ? "#D8F1A5" : "var(--cream-100)",
-                  textAlign: alignLeft ? "left" : "right",
-                  ...("divider" in col && col.divider
-                    ? { borderLeft: "1px solid #DBDBD8" }
-                    : null),
+                  background: hlCols.has(c)
+                    ? "#D8F1A5"
+                    : col.hero
+                      ? HERO_HEAD
+                      : "var(--cream-100)",
+                  textAlign: isMonth ? "left" : "right",
                 }}
               >
                 {tip ? (
-                  <Tip text={tip} align={c >= 7 ? "right" : "left"}>
+                  <Tip text={tip} align={c >= 4 ? "right" : "left"}>
                     {col.h}
                   </Tip>
                 ) : (
@@ -211,10 +157,9 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
           return (
             <tr key={row.idx}>
               {COLS.map((col, c) => {
-                const first = "first" in col && col.first;
-                const alignLeft = "alignLeft" in col && col.alignLeft;
+                const first = !!col.first;
                 const hi = isHi(row.idx, c);
-                const value = first ? row.label : fmtCell(col as Col, row.data);
+                const value = first ? row.label : col.fmt!(row.data);
                 // Grant fully utilised this month → shade the spend cell gray.
                 const atCap =
                   !row.summary &&
@@ -223,6 +168,7 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
                 let bg = baseBg;
                 if (first)
                   bg = row.summary ? "#F3F8E6" : stripe ? "#F8F7F3" : "#FFFFFF";
+                if (col.hero && !first && !hi) bg = row.summary ? "rgba(196,237,130,0.28)" : stripe ? "#F4F7EA" : HERO_CELL;
                 if (atCap) bg = "#DBDBD8";
                 if (hi) bg = first ? "#D8F1A5" : "rgba(196,237,130,0.55)";
                 return (
@@ -235,19 +181,16 @@ export function BreakdownTable({ monthly }: { monthly: MonthRow[] }) {
                     }
                     style={{
                       padding: first ? "16px 8px" : "16px 14px",
-                      fontSize: 13,
                       whiteSpace: "nowrap",
                       cursor: "pointer",
-                      textAlign: alignLeft ? "left" : "right",
-                      fontWeight: row.summary ? 700 : first ? 600 : 400,
+                      textAlign: first ? "left" : "right",
+                      fontSize: col.hero ? 14 : 13,
+                      fontWeight: row.summary ? 700 : first ? 600 : col.hero ? 600 : 400,
                       color:
                         row.summary || first
                           ? "var(--ink-900)"
                           : "var(--ink-500)",
                       background: bg,
-                      ...("divider" in col && col.divider
-                        ? { borderLeft: "1px solid #DBDBD8" }
-                        : null),
                       ...(row.summary
                         ? {
                             borderTop: "1px solid rgba(63,80,40,0.18)",

@@ -1,11 +1,13 @@
 import { useId, useState, type ReactNode } from 'react'
-import { cf, short } from '../model/format'
+import { cf, nf, short, shortNum } from '../model/format'
 
 interface LineChartProps {
   values: number[]
   stroke: string
   fillHi: string
   fillLo: string
+  /** false → plain counts (visitors) instead of dollars */
+  money?: boolean
 }
 
 const W = 560
@@ -15,7 +17,7 @@ const PAD_R = 16
 const PAD_T = 16
 const PAD_B = 30
 
-export function LineChart({ values, stroke, fillHi, fillLo }: LineChartProps) {
+export function LineChart({ values, stroke, fillHi, fillLo, money = true }: LineChartProps) {
   const gradientId = useId()
   const [hover, setHover] = useState<number | null>(null)
 
@@ -39,7 +41,7 @@ export function LineChart({ values, stroke, fillHi, fillLo }: LineChartProps) {
     els.push(<line key={`g${g}`} x1={PAD_L} y1={y} x2={W - PAD_R} y2={y} stroke="#EBE9E0" strokeWidth={1} />)
     els.push(
       <text key={`yl${g}`} x={PAD_L - 8} y={y + 4} textAnchor="end" fontSize={11} fill="#7A7770" fontFamily="Lexend, sans-serif">
-        {short(v)}
+        {money ? short(v) : shortNum(v)}
       </text>,
     )
   }
@@ -104,7 +106,7 @@ export function LineChart({ values, stroke, fillHi, fillLo }: LineChartProps) {
           MONTH {i + 1}
         </text>
         <text x={tx + 14} y={ty + 37} fontSize={16} fontWeight={700} fill="#FFFFFF" fontFamily="Lexend, sans-serif">
-          {cf(values[i])}
+          {money ? cf(values[i]) : `${nf(values[i])} visitors`}
         </text>
       </g>,
     )

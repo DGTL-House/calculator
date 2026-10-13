@@ -19,3 +19,8 @@ export function short(n: number): string {
   if (n >= 1_000) return '$' + Math.round(n / 1_000) + 'k'
   return '$' + Math.round(n)
 }
+
+/** 1_250_000 → "1.3M", 42_000 → "42k" — like short() without the $ */
+export function shortNum(n: number): string {
+  return short(n).slice(1)
+}

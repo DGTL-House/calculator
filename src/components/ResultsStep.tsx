@@ -1,7 +1,7 @@
 import { useMemo } from 'react'
 import { accentFor, MONTHS, NICHES } from '../model/data'
-import { cc, nf } from '../model/format'
-import { aggregate, feeFor, monthlyFor } from '../model/projection'
+import { cf, nf } from '../model/format'
+import { aggregate, feeFor, monthlyFor, netAdValue } from '../model/projection'
 import type { Payment, TariffKey } from '../model/types'
 import { BreakdownTable } from './BreakdownTable'
 import { ComparisonSection } from './ComparisonSection'
@@ -37,14 +37,13 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
   const total = useMemo(() => aggregate(monthly, 0, MONTHS), [monthly])
 
   const fee24 = feeFor(tariff, payment) * MONTHS
-  const roi = fee24 ? total.donUsd / fee24 : 0
-  const net = total.donUsd - fee24
+  const net = netAdValue(total.spend, fee24)
 
   // Net-gain uplift of the selected plan vs. the Starter plan (same niche +
   // billing). Shown as a badge on Growth / Impact only.
   const starterNet = useMemo(() => {
     const t = aggregate(monthlyFor('starter', nicheObj), 0, MONTHS)
-    return t.donUsd - feeFor('starter', payment) * MONTHS
+    return netAdValue(t.spend, feeFor('starter', payment) * MONTHS)
   }, [nicheObj, payment])
   const upliftPct = tariff !== 'starter' && starterNet > 0 ? (net / starterNet - 1) * 100 : null
   const badge =
@@ -52,16 +51,16 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
       ? { bg: '#2D3A1C', ink: '#EAF6CC', sub: 'rgba(234,246,204,0.75)' }
       : { bg: '#3F5028', ink: '#C4ED82', sub: 'rgba(196,237,130,0.78)' }
 
-  const cumDonations = useMemo(() => {
+  const cumVisitors = useMemo(() => {
     let cum = 0
-    return monthly.map((m) => (cum += m.donUsd))
+    return monthly.map((m) => (cum += m.clicks))
   }, [monthly])
   const monthlySpend = useMemo(() => monthly.map((m) => m.spend), [monthly])
 
   const metricCards = [
-    { label: 'Projected donations', value: cc(total.donUsd), sub: 'in donations over 24 months' },
-    { label: 'Meaningful conversions', value: nf(total.conv), sub: 'volunteers, registrations, calls & more' },
-    { label: 'Return on investment', value: `×${roi.toFixed(1)}`, sub: 'return on every $1 invested', color: accent.big },
+    { label: 'Ad reach (impressions)', value: nf(total.impressions), sub: 'times your nonprofit was seen in Google Search' },
+    { label: 'Relevant website visitors', value: nf(total.clicks), sub: 'high-intent people who visited your site' },
+    { label: 'Free ad value from Google', value: cf(total.spend), sub: 'in advertising covered by Google Ad Grants', color: accent.big },
   ]
 
   return (
@@ -112,7 +111,7 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
                   opacity: 0.8,
                 }}
               >
-                Your net gain
+                Your net ad value
               </span>
               {upliftPct != null && (
                 <span
@@ -137,13 +136,14 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
               )}
             </div>
             <span style={{ fontSize: 'clamp(44px, 10vw, 72px)', fontWeight: 500, letterSpacing: '-0.02em', lineHeight: 1 }}>
-              {cc(net)}
+              {cf(net)}
             </span>
           </div>
           <div style={{ width: 1, alignSelf: 'stretch', background: accent.rule }} />
           <div style={{ flex: '1 1 260px', minWidth: 0, fontSize: 26, fontWeight: 500, lineHeight: 1.28, letterSpacing: '-0.01em' }}>
-            After our service fee, your nonprofit&rsquo;s{' '}
-            <strong style={{ fontWeight: 700 }}>net gain in donations is {cc(net)}</strong> over 24 months.
+            Google covers {cf(total.spend)} in advertising for you. After our management fee, you get{' '}
+            <strong style={{ fontWeight: 700 }}>{cf(net)} in free ad value</strong> over 24 months &mdash; that&rsquo;s{' '}
+            {nf(total.impressions)} impressions and {nf(total.clicks)} relevant visitors to your mission.
           </div>
         </div>
       </section>
@@ -179,11 +179,11 @@ export function ResultsStep({ niche, tariff, onTariff, payment, onPayment }: Res
       {/* Step 5 · Charts */}
       <section className="grid-2" style={{ marginTop: 56 }}>
         <div className="card" style={{ padding: '26px 26px 18px' }}>
-          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>Projected donations growth</div>
+          <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>Relevant visitors growth</div>
           <div style={{ fontSize: 13, fontWeight: 300, color: 'var(--ink-400)', marginBottom: 14 }}>
-            Cumulative donations raised, months 1&ndash;24
+            Cumulative website visitors, months 1&ndash;24
           </div>
-          <LineChart values={cumDonations} stroke="#3F5028" fillHi="#C4ED82" fillLo="#C4ED82" />
+          <LineChart values={cumVisitors} money={false} stroke="#3F5028" fillHi="#C4ED82" fillLo="#C4ED82" />
         </div>
         <div className="card" style={{ padding: '26px 26px 18px' }}>
           <div style={{ fontSize: 18, fontWeight: 600, letterSpacing: '-0.01em' }}>Ad spend growth</div>

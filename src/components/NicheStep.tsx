@@ -49,13 +49,18 @@ export function NicheStep({ niche, onSelectNiche, onContinue }: NicheStepProps) 
       >
         See the results your nonprofit can achieve with dgtl-house + Google Ad Grants
       </h1>
+      <p style={{ margin: '18px 0 0', maxWidth: 720, fontSize: 18, fontWeight: 300, color: 'var(--ink-500)' }}>
+        We estimate your ad spend, impressions, website visitors, and management fee &mdash; month by month.
+      </p>
 
       {/* trust block */}
       <div className="card" style={{ marginTop: 36, maxWidth: 820, padding: '26px 20px' }}>
         <p style={{ margin: '0 0 22px', fontSize: 16, lineHeight: 1.55, fontWeight: 300, color: 'var(--ink-500)' }}>
-          These projections are built on real benchmarks &mdash; our historical data from managing Google Ad Grants for{' '}
-          <strong style={{ fontWeight: 600, color: 'var(--ink-900)' }}>200+ US nonprofits</strong>, combined with
-          performance data shared directly by Google, our official partner.
+          Projections are based on our historical performance data from{' '}
+          <strong style={{ fontWeight: 600, color: 'var(--ink-900)' }}>200+ US nonprofits</strong> over 10+ years of
+          managing Google Ad Grants, combined with CTR, CPC, and conversion-rate benchmarks shared directly by Google
+          as our official partner. Each niche has its own calibrated baseline because search intent, cost per click,
+          and audience behavior vary significantly across causes.
         </p>
         <div style={{ display: 'flex', flexWrap: 'wrap', rowGap: 16 }}>
           {TRUST_ITEMS.map((t, i) => (
